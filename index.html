@@ -133,7 +133,7 @@
     <!-- METRICAS DE ESTADO (ABREN PESTAÑA NUEVA AL HACER CLIC) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
         <div class="card card-libre" onclick="abrirPestanaDetalle('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig" onclick="abrirPestanaDetalle('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-asig" onclick="abrirPestanaDetalle('asignados')"><h3>Sin Usar</h3><p id="m_asig">0</p></div>
         <div class="card card-usado" onclick="abrirPestanaDetalle('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
         <div class="card card-canc" onclick="abrirPestanaDetalle('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
     </div>
@@ -337,7 +337,7 @@
             render();
         }
 
-        // --- FUNCIÓN PRINCIPAL: ABRIR PESTAÑA NUEVA BONITA CON BOTÓN DE DESCARGA ---
+        // --- FUNCIÓN PRINCIPAL: ABRIR PESTAÑA NUEVA BONITA CON BOTÓN DE DESCARGA Y CERRAR ---
         function abrirPestanaDetalle(tipo) {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             let titulo = "Detalles de Vales";
@@ -345,13 +345,13 @@
             let isUsados = false;
 
             if (tipo === 'libres') {
-                titulo = "Vales Disponibles (Libres)";
+                titulo = "Vales Disponibles";
                 datosMostrar = valesDept.filter(v => v.est === "libre");
             } else if (tipo === 'asignados') {
-                titulo = "Vales Sin Usar (Asignados a Funcionarios)";
+                titulo = "Vales Sin Usar";
                 datosMostrar = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
             } else if (tipo === 'usados') {
-                titulo = "Vales Usados (Pendientes de Renovación)";
+                titulo = "Vales Usados";
                 // Filtra para mostrar solo los que NO han sido descargados todavía
                 datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
                 isUsados = true;
@@ -360,7 +360,7 @@
                 datosMostrar = valesDept.filter(v => v.est === "cancelado");
             }
 
-            // CREAR LA NUEVA PESTAÑA CON EL DISEÑO BONITO Y EL BOTÓN EXCEL
+            // CREAR LA NUEVA PESTAÑA CON EL DISEÑO BONITO, BOTÓN EXCEL Y BOTÓN CERRAR
             const nuevaVentana = window.open("", "_blank");
             nuevaVentana.document.write(`
                 <!DOCTYPE html>
@@ -373,8 +373,14 @@
                         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; }
                         h1 { color: #8b1a2b; margin: 0; font-size: 24px; }
-                        button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-                        button:hover { background: #059669; }
+                        
+                        /* Estilos para los botones */
+                        .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+                        .btn-excel:hover { background: #059669; }
+                        
+                        .btn-cerrar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+                        .btn-cerrar:hover { background: #475569; }
+
                         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
                         th { background: #f8fafc; font-weight: 600; color: #475569; }
@@ -385,7 +391,10 @@
                     <div class="container">
                         <div class="header">
                             <h1>${titulo}</h1>
-                            <button onclick="descargarExcel()">📊 Descargar Excel</button>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>
+                                <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
+                            </div>
                         </div>
                         ${isUsados ? '<div class="nota">💡 IMPORTANTE: Al hacer clic en "Descargar Excel", estos vales se guardarán como renovados y ya no volverán a aparecer en las próximas descargas.</div>' : ''}
                         
