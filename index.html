@@ -6,7 +6,7 @@
     <title>Sistema de Trazabilidad y Control de Vales</title>
     <style>
         :root {
-            --color-institucional: #004A8F;
+            --color-institucional: #004A8F; /* Color institucional unificado */
             --color-secundario: #333333;
             --color-fondo: #f4f6f9;
         }
@@ -15,74 +15,70 @@
             font-family: Arial, sans-serif;
             background-color: var(--color-fondo);
             margin: 0;
-            padding: 15px;
+            padding: 20px;
             color: var(--color-secundario);
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         header {
             background-color: var(--color-institucional);
             color: white;
-            padding: 12px 20px;
+            padding: 15px 20px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        header h2 {
-            font-size: 18px;
-            margin: 0;
-        }
-
-        /* Tarjetas de resumen en cuadrícula ordenada */
+        /* Tarjetas interactivas de resumen */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
         .card {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             text-align: center;
             border-top: 4px solid var(--color-institucional);
         }
 
         .card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .card h3 {
-            font-size: 12px;
+            font-size: 14px;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
 
         .card span {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             color: var(--color-institucional);
         }
 
-        /* Roles */
+        /* Sección de Roles actualizados */
         .roles-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 20px;
             background: white;
-            padding: 12px 15px;
+            padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -90,51 +86,47 @@
         .role-badge {
             background-color: #e6f0fa;
             color: var(--color-institucional);
-            padding: 6px 12px;
+            padding: 8px 15px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
         }
 
-        /* Botón */
+        /* Botón Institucional */
         .btn-exportar {
-            background-color: white;
-            color: var(--color-institucional);
+            background-color: var(--color-institucional);
+            color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 10px 18px;
             border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
         }
 
         .btn-exportar:hover {
-            background-color: #f0f0f0;
+            opacity: 0.9;
         }
 
-        /* Tabla */
+        /* Tabla de Control y Trazabilidad */
         .table-container {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .table-container h3 {
-            font-size: 15px;
-            margin-top: 0;
-            color: #333;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
+            margin-top: 15px;
         }
 
         th, td {
-            padding: 10px;
+            padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
@@ -154,13 +146,13 @@
             <button class="btn-exportar" onclick="exportarExcel()">Exportar Excel</button>
         </header>
 
-        <!-- Roles -->
+        <!-- Roles Actualizados -->
         <div class="roles-container">
             <span class="role-badge">Instrumentadores</span>
             <span class="role-badge">Aux. de lavado</span>
         </div>
 
-        <!-- Tarjetas de Resumen -->
+        <!-- Tarjetas de Resumen (Con filtro interactivo y texto limpio) -->
         <div class="cards-grid">
             <div class="card" onclick="filtrarTabla('disponibles')">
                 <h3>Disponibles</h3>
@@ -180,7 +172,7 @@
             </div>
         </div>
 
-        <!-- Tabla -->
+        <!-- Tabla de Trazabilidad -->
         <div class="table-container">
             <h3>Control y Trazabilidad</h3>
             <table id="tabla-trazabilidad">
@@ -214,8 +206,10 @@
     </div>
 
     <script>
+        // Función para filtrar la tabla al hacer clic en las tarjetas superiores
         function filtrarTabla(estadoFiltro) {
             const filas = document.querySelectorAll('#tabla-trazabilidad tbody tr');
+            
             filas.forEach(fila => {
                 const estadoFila = fila.getAttribute('data-estado');
                 if (estadoFiltro === 'todos' || estadoFila === estadoFiltro) {
@@ -230,5 +224,5 @@
             alert('Función de exportar a Excel lista para activarse.');
         }
     </script>
-    </body>
+</body>
 </html>
