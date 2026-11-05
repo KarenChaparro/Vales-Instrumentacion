@@ -150,12 +150,12 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO (VISTA INICIAL) -->
+    <!-- METRICAS DE ESTADO (ABRE PESTAÑA NUEVA AL HACER CLIC) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
-        <div class="card card-libre" onclick="abrirVistaDetalle('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig" onclick="abrirVistaDetalle('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
-        <div class="card card-usado" onclick="abrirVistaDetalle('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
-        <div class="card card-canc" onclick="abrirVistaDetalle('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+        <div class="card card-libre" onclick="abrirHojaNueva('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
+        <div class="card card-asig" onclick="abrirHojaNueva('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-usado" onclick="abrirHojaNueva('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
+        <div class="card card-canc" onclick="abrirHojaNueva('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
     </div>
 
     <!-- SECCION AUTH (LOGIN / REGISTRO) -->
@@ -320,8 +320,7 @@
             </div>
 
             <div>
-                <!-- VISTA 1: CONTROL Y TRAZABILIDAD GENERAL -->
-                <div class="panel" id="vista_general">
+                <div class="panel">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
                         <h2>📊 Control y Trazabilidad</h2>
                         <div style="display:flex; gap:5px; align-items:center;">
@@ -352,30 +351,6 @@
                         </table>
                     </div>
                 </div>
-
-                <!-- VISTA 2: NUEVA "HOJA" O PESTAÑA INDIVIDUAL AL HACER CLIC EN LAS TARJETAS -->
-                <div class="panel" id="vista_detalle_tarjeta" style="display:none;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #8b1a2b; padding-bottom:10px;">
-                        <h2 id="titulo_vista_detalle" style="margin:0; color:#8b1a2b;">Detalle de Vales</h2>
-                        <button onclick="cerrarVistaDetalle()" class="btn-neutral" style="width:auto; margin:0; padding:8px 16px; font-size:13px;">⬅️ Volver al Panel Principal</button>
-                    </div>
-
-                    <div style="max-height:520px; overflow-y:auto;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nº de Vale</th>
-                                    <th>Estado</th>
-                                    <th>Funcionario</th>
-                                    <th>Fecha / Hora</th>
-                                    <th>Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbl_detalle_tarjeta"></tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
         </div>
 
@@ -733,11 +708,8 @@
             }
         }
 
-        // FUNCIONES PARA ABRIR Y CERRAR LA "OTRA HOJA" / VISTA INDIVIDUAL
-        function abrirVistaDetalle(tipo) {
-            document.getElementById("vista_general").style.display = "none";
-            document.getElementById("vista_detalle_tarjeta").style.display = "block";
-
+        // FUNCIÓN PARA ABRIR UNA NUEVA PESTAÑA LIMPIA CON LA INFORMACIÓN DETALLADA
+        function abrirHojaNueva(tipo) {
             let titulo = "Detalle";
             let valesFiltrados = vales.filter(v => v.dept === currentUser.dept);
 
@@ -755,42 +727,84 @@
                 valesFiltrados = valesFiltrados.filter(v => v.est === "cancelado");
             }
 
-            document.getElementById("titulo_vista_detalle").innerText = titulo;
-
-            const tbody = document.getElementById("tbl_detalle_tarjeta");
-            tbody.innerHTML = "";
+            // Crear la ventana o pestaña nueva con diseño independiente
+            let nuevaVentana = window.open("", "_blank");
+            
+            let contenidoHtml = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${titulo} - ${currentUser.dept.toUpperCase()}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 30px; color: #334155; max-width: 1000px; margin: 0 auto; }
+                        h2 { color: #8b1a2b; border-bottom: 2px solid #8b1a2b; padding-bottom: 10px; margin-top: 0; }
+                        .info-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+                        th, td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+                        th { background: #8b1a2b; color: white; font-weight: 600; }
+                        .badge { padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+                        .badge-libre { background: #dcfce7; color: #166534; }
+                        .badge-asig { background: #dbeafe; color: #1e40af; }
+                        .badge-usado { background: #fee2e2; color: #991b1b; }
+                        .badge-canc { background: #fef3c7; color: #92400e; }
+                        .btn-cerrar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px; }
+                        .btn-cerrar:hover { background: #475569; }
+                    </style>
+                </head>
+                <body>
+                    <div class="info-box">
+                        <h2>📋 ${titulo}</h2>
+                        <p>Departamento: <strong>${currentUser.dept.toUpperCase()}</strong> | Total registros: <strong>${valesFiltrados.length}</strong></p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº de Vale</th>
+                                    <th>Estado</th>
+                                    <th>Funcionario</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
 
             if (valesFiltrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:20px;">No hay registros en esta categoría.</td></tr>`;
-                return;
+                contenidoHtml += `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:30px;">No hay registros disponibles en esta categoría.</td></tr>`;
+            } else {
+                valesFiltrados.forEach(v => {
+                    let badgeClass = "badge-libre";
+                    if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
+                    if (v.est === "usado") badgeClass = "badge-usado";
+                    if (v.est === "cancelado") badgeClass = "badge-canc";
+
+                    let detalle = "---";
+                    if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')} COP`;
+                    if (v.est === "cancelado") detalle = v.motivo;
+
+                    contenidoHtml += `
+                        <tr>
+                            <td><strong>${v.num}</strong></td>
+                            <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
+                            <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                            <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
+                            <td>${detalle}</td>
+                        </tr>
+                    `;
+                });
             }
 
-            valesFiltrados.forEach(v => {
-                let badgeClass = "badge-libre";
-                if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
-                if (v.est === "usado") badgeClass = "badge-usado";
-                if (v.est === "cancelado") badgeClass = "badge-canc";
+            contenidoHtml += `
+                            </tbody>
+                        </table>
+                        <button class="btn-cerrar" onclick="window.close()">✖️ Cerrar Pestaña</button>
+                    </div>
+                </body>
+                </html>
+            `;
 
-                let detalle = "---";
-                if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')}`;
-                if (v.est === "cancelado") detalle = v.motivo;
-
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td><strong>${v.num}</strong></td>
-                    <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
-                    <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                    <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
-                    <td>${detalle}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function cerrarVistaDetalle() {
-            document.getElementById("vista_detalle_tarjeta").style.display = "none";
-            document.getElementById("vista_general").style.display = "block";
-            renderAdmin();
+            nuevaVentana.document.write(contenidoHtml);
+            nuevaVentana.document.close();
         }
 
         function render() {
