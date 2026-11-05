@@ -6,7 +6,7 @@
     <title>Sistema de Trazabilidad y Control de Vales</title>
     <style>
         :root {
-            --color-institucional: #004A8F; /* Ajusta aquí tu color institucional exacto */
+            --color-institucional: #004A8F; /* Color institucional unificado */
             --color-secundario: #333333;
             --color-fondo: #f4f6f9;
         }
@@ -72,7 +72,7 @@
             color: var(--color-institucional);
         }
 
-        /* Sección de Roles */
+        /* Sección de Roles actualizados */
         .roles-container {
             display: flex;
             gap: 15px;
@@ -92,7 +92,7 @@
             font-weight: 600;
         }
 
-        /* Botón Institucional de Exportar */
+        /* Botón Institucional */
         .btn-exportar {
             background-color: var(--color-institucional);
             color: white;
@@ -152,7 +152,7 @@
             <span class="role-badge">Aux. de lavado</span>
         </div>
 
-        <!-- Tarjetas de Resumen (Con filtro interactivo) -->
+        <!-- Tarjetas de Resumen (Con filtro interactivo y texto limpio) -->
         <div class="cards-grid">
             <div class="card" onclick="filtrarTabla('disponibles')">
                 <h3>Disponibles</h3>
@@ -186,7 +186,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Ejemplo de filas (Se llenarán dinámicamente con tu lógica) -->
                     <tr data-estado="disponibles">
                         <td>VALE-1001</td>
                         <td>Disponibles</td>
@@ -198,7 +197,7 @@
                         <td>VALE-1002</td>
                         <td>Asignados</td>
                         <td>Juan Pérez</td>
-                        <td>2026-11-04 10:00</td>
+                        <td>2026-11-05 10:00</td>
                         <td>Entregado a turno</td>
                     </tr>
                 </tbody>
@@ -225,5 +224,8 @@
             alert('Función de exportar a Excel lista para activarse.');
         }
     </script>
+</body>
+</html>
+
 </body>
 </html>
