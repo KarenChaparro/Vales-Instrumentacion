@@ -85,7 +85,7 @@
 
         .dept-tag { font-size: 12px; font-weight: bold; padding: 6px 12px; background: #8b1a2b; color: #ffffff; border-radius: 6px; }
 
-        /* RECUADROS DE METRICAS (ABREN PESTAÑA NUEVA) */
+        /* RECUADROS DE METRICAS */
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
         
@@ -130,7 +130,7 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO (ABREN PESTAÑA NUEVA AL HACER CLIC) -->
+    <!-- METRICAS DE ESTADO -->
     <div id="sec_metrics" class="metrics" style="display:none;">
         <div class="card card-libre" onclick="abrirPestanaDetalle('libres')">
             <h3>Disponibles</h3>
@@ -262,17 +262,17 @@
                 </div>
 
                 <!-- CONFIGURACION DE ADMIN -->
-                <div class="panel" id="panel_config_admin" style="display:none;">
+                <div class="panel" id="panel_config_admin">
                     <h2>⚙️ Configuración de Administradora</h2>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
-                        <label class="btn-img-logo">
+                        <label class="btn-img-logo" id="box_btn_logo" style="display:none;">
                             🖼️ Cambiar Logo
                             <input type="file" id="input_logo" accept="image/*" style="display:none;">
                         </label>
                     </div>
-                    <div style="margin-top:10px;">
-                        <label class="btn-img-bg">
+                    <div style="margin-top:10px;" id="box_btn_bg_container">
+                        <label class="btn-img-bg" id="box_btn_bg" style="display:none;">
                             🏞️ Cambiar Fondo Encabezado
                             <input type="file" id="input_bg" accept="image/*" style="display:none;">
                         </label>
@@ -309,7 +309,7 @@
                     <div style="max-height:520px; overflow-y:auto;">
                         <table>
                             <thead>
-                                <tr><th>Nº de Vale</th><th>Estado</th><th>Funcionario</th><th>Fecha Carga/Uso</th><th>Acción</th></tr>
+                                <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha Carga/Uso</th><th>Acción</th></tr>
                             </thead>
                             <tbody id="tbl_inventario"></tbody>
                         </table>
@@ -344,37 +344,52 @@
             render();
         });
 
-        // FUNCION PARA ACTUALIZAR DESDE LA PESTAÑA NUEVA
         function recargarDatosDesdeHijo() {
             vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
             render();
         }
 
-        // --- FUNCIÓN PRINCIPAL: ABRIR PESTAÑA NUEVA BONITA CON BOTÓN DE DESCARGA Y CERRAR ---
+        // --- FUNCIÓN PRINCIPAL: ABRIR PESTAÑA NUEVA ---
         function abrirPestanaDetalle(tipo) {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             let titulo = "Detalles de Vales";
             let datosMostrar = [];
             let isUsados = false;
+            let esAdmin = (currentUser.rol === "admin");
 
-            if (tipo === 'libres') {
-                titulo = "Vales Disponibles";
-                datosMostrar = valesDept.filter(v => v.est === "libre");
-            } else if (tipo === 'asignados') {
-                titulo = "Vales Asignados";
-                // Muestra TODOS los que tienen usuario (obtenidos, asignados, usados, cancelados)
-                datosMostrar = valesDept.filter(v => v.est !== "libre");
-            } else if (tipo === 'usados') {
-                titulo = "Vales Usados";
-                // Filtra para mostrar solo los que NO han sido descargados todavía
-                datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
-                isUsados = true;
-            } else if (tipo === 'cancelados') {
-                titulo = "Vales Cancelados";
-                datosMostrar = valesDept.filter(v => v.est === "cancelado");
+            if (esAdmin) {
+                if (tipo === 'libres') {
+                    titulo = "Vales Disponibles";
+                    datosMostrar = valesDept.filter(v => v.est === "libre");
+                } else if (tipo === 'asignados') {
+                    titulo = "Vales Asignados";
+                    datosMostrar = valesDept.filter(v => v.est !== "libre");
+                } else if (tipo === 'usados') {
+                    titulo = "Vales Usados";
+                    datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
+                    isUsados = true;
+                } else if (tipo === 'cancelados') {
+                    titulo = "Vales Cancelados";
+                    datosMostrar = valesDept.filter(v => v.est === "cancelado");
+                }
+            } else {
+                // VISTA PARA FUNCIONARIO COMÚN
+                if (tipo === 'libres') {
+                    // BLOQUEO: Los usuarios comunes ven la cantidad en la tarjeta pero NO ven la lista de códigos libres
+                    alert(`Hay ${valesDept.filter(v => v.est === "libre").length} vales disponibles en total en tu departamento. Para obtener uno, utiliza el botón principal "Obtener Vale Libre".`);
+                    return; 
+                } else if (tipo === 'asignados') {
+                    titulo = "Mis Vales Asignados / En Curso";
+                    datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc);
+                } else if (tipo === 'usados') {
+                    titulo = "Mis Vales Usados";
+                    datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "usado");
+                } else if (tipo === 'cancelados') {
+                    titulo = "Mis Vales Cancelados";
+                    datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado");
+                }
             }
 
-            // CREAR LA NUEVA PESTAÑA CON EL DISEÑO BONITO, BOTÓN EXCEL Y BOTÓN CERRAR
             const nuevaVentana = window.open("", "_blank");
             nuevaVentana.document.write(`
                 <!DOCTYPE html>
@@ -388,7 +403,6 @@
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; }
                         h1 { color: #8b1a2b; margin: 0; font-size: 24px; }
                         
-                        /* Estilos para los botones */
                         .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
                         .btn-excel:hover { background: #059669; }
                         
@@ -406,20 +420,20 @@
                         <div class="header">
                             <h1>${titulo}</h1>
                             <div style="display:flex; gap:10px;">
-                                <button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>
+                                ${esAdmin ? '<button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>' : ''}
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                             </div>
                         </div>
-                        ${isUsados ? '<div class="nota">💡 IMPORTANTE: Al hacer clic en "Descargar Excel", estos vales se guardarán como renovados y ya no volverán a aparecer en las próximas descargas.</div>' : ''}
+                        ${isUsados && esAdmin ? '<div class="nota">💡 IMPORTANTE: Al hacer clic en "Descargar Excel", estos vales se guardarán como renovados y ya no volverán a aparecer en las próximas descargas.</div>' : ''}
                         
                         <table>
                             <thead>
                                 <tr>
                                     <th>Nº de Vale</th>
                                     <th>Estado</th>
-                                    <th>Funcionario</th>
+                                    <th>Nombre</th>
                                     <th>Fecha y Hora</th>
-                                    <th>Detalle (Uso/Motivo)</th>
+                                    <th>Valor</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -438,65 +452,43 @@
                     </div>
 
                     <script>
-                        // Pasamos los datos desde la ventana principal a esta nueva
                         const datosExcel = ${JSON.stringify(datosMostrar)};
                         const tipoVista = '${tipo}';
                         const departamento = '${currentUser.dept}';
+                        const esAdmin = ${esAdmin};
 
                         function descargarExcel() {
-                            if(datosExcel.length === 0) {
-                                alert("No hay datos para descargar.");
-                                return;
-                            }
+                            if(!esAdmin || datosExcel.length === 0) return;
 
-                            // 1. Armar el archivo CSV
-                            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\\n";
+                            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\\n";
                             datosExcel.forEach(v => {
                                 csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'","'+(v.usrNombre||'')+'","'+(v.usrCc||'')+'","'+(v.fechaHora||'')+'","'+(v.valor||'')+'","'+(v.motivo||'')+'"\\n';
                             });
 
-                            // 2. Descargar el archivo
                             const blob = new Blob(["\\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-                            
-                            // Método seguro para descarga de blob en nueva pestaña
-                            if (navigator.msSaveBlob) { 
-                                navigator.msSaveBlob(blob, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
-                            } else {
-                                const link = document.createElement("a");
-                                const url = URL.createObjectURL(blob);
-                                link.href = url;
-                                link.setAttribute("download", "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
-                                link.style.display = "none";
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                            }
+                            const link = document.createElement("a");
+                            link.href = URL.createObjectURL(blob);
+                            link.setAttribute("download", "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
+                            link.style.display = "none";
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
 
-                            // 3. Lógica para NO REPETIR vales usados
                             if (tipoVista === 'usados') {
-                                // Leer la base de datos global
                                 let baseVales = JSON.parse(localStorage.getItem("vi_vales")) || [];
-                                
-                                // Marcar como descargados
                                 baseVales.forEach(v => {
                                     if (v.dept === departamento && v.est === "usado" && !v.descargadoUsado) {
                                         v.descargadoUsado = true;
                                     }
                                 });
-                                
-                                // Guardar base de datos actualizada
                                 localStorage.setItem("vi_vales", JSON.stringify(baseVales));
-                                
-                                // Avisar a la ventana principal que actualice sus números
                                 if (window.opener && !window.opener.closed) {
                                     if(typeof window.opener.recargarDatosDesdeHijo === 'function'){
                                         window.opener.recargarDatosDesdeHijo();
                                     }
                                 }
-
-                                alert("✅ ¡Excel descargado con éxito!\\nLos vales han sido marcados como procesados y no se repetirán.");
-                                window.close(); // Cierra la pestaña solita después de descargar
+                                alert("✅ ¡Excel descargado con éxito!\\nLos vales han sido marcados como procesados.");
+                                window.close();
                             }
                         }
                     <\/script>
@@ -506,7 +498,6 @@
             nuevaVentana.document.close();
         }
 
-        /* ----- RESTO DEL CÓDIGO (LÓGICA BASE) ----- */
         document.getElementById("input_logo").onchange = function(e) {
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
@@ -581,12 +572,12 @@
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
 
         function cambiarPinAdmin() {
-            const pinActual = prompt("PIN actual:");
+            const pinActual = prompt("Ingresa tu PIN actual:");
             if (pinActual === adminPins[currentUser.cc]) {
-                const nuevo = prompt("Nuevo PIN (mín 4 caracteres):");
-                if (nuevo && nuevo.trim().length >= 4) { adminPins[currentUser.cc] = nuevo.trim(); saveData(); alert("PIN actualizado."); }
-                else alert("Mínimo 4 caracteres.");
-            } else if (pinActual !== null) alert("PIN incorrecto.");
+                const nuevo = prompt("Nuevo PIN (mínimo 4 caracteres):");
+                if (nuevo && nuevo.trim().length >= 4) { adminPins[currentUser.cc] = nuevo.trim(); saveData(); alert("PIN actualizado con éxito."); }
+                else alert("El PIN debe tener al menos 4 caracteres.");
+            } else if (pinActual !== null) alert("PIN actual incorrecto.");
         }
 
         function agregarValesMasivos() {
@@ -594,7 +585,7 @@
             if (!raw) return alert("Ingresa vales.");
             
             let agregados = 0, duplicados = 0;
-            const fechaCargaActual = new Date().toLocaleDateString("es-CO"); // SE GUARDA LA FECHA DE CARGA
+            const fechaCargaActual = new Date().toLocaleDateString("es-CO");
             
             raw.split('\n').forEach(line => {
                 const p = line.trim().split(/\s+/);
@@ -656,6 +647,7 @@
         }
 
         function descargarReporteExcel() {
+            if (currentUser.rol !== "admin") return;
             const filtro = document.getElementById("export_filter").value;
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             
@@ -665,24 +657,17 @@
             else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
 
             if (valesDept.length === 0) return alert("No hay registros.");
-            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
+            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
             valesDept.forEach(v => csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga||''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`);
             
             const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-            
-            if (navigator.msSaveBlob) { 
-                navigator.msSaveBlob(blob, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
-            } else {
-                const link = document.createElement("a"); 
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.setAttribute("download", `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
-                link.style.display = "none";
-                document.body.appendChild(link); 
-                link.click(); 
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }
+            const link = document.createElement("a"); 
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
+            link.style.display = "none";
+            document.body.appendChild(link); 
+            link.click(); 
+            document.body.removeChild(link);
         }
 
         function renderAdmin() {
@@ -703,6 +688,7 @@
 
             vd.forEach(v => {
                 let badge = "badge-libre"; if(v.est === "obtenido"||v.est === "asignado") badge="badge-asig"; else if(v.est==="usado") badge="badge-usado"; else if(v.est==="cancelado") badge="badge-canc";
+                let valDisplay = v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---');
                 tbI.innerHTML += `<tr><td><strong>${v.num}</strong></td><td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td><td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td><td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td><td><button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;">🗑️</button></td></tr>`;
             });
         }
@@ -717,24 +703,36 @@
                 document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
                 const vd = vales.filter(v => v.dept === currentUser.dept);
                 
-                document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
-                
-                // Métrica de Asignados: Total que tienen o tuvieron funcionario
-                const asignadosTotal = vd.filter(v => v.est !== "libre");
-                document.getElementById("m_asig").innerText = asignadosTotal.length;
-                // Submétrica: Cuántos de esos están en curso (aún en el taxi sin reportar)
-                document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
-                
-                // Muestra SOLO los usados que faltan por descargar
-                document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
-                
-                document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
+                if (currentUser.rol === "admin") {
+                    document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+                    const asignadosTotal = vd.filter(v => v.est !== "libre");
+                    document.getElementById("m_asig").innerText = asignadosTotal.length;
+                    document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                    document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
+                    document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
+                } else {
+                    // CONTADORES GLOBALES DE DISPONIBLES PARA EL FUNCIONARIO (Ven cuántos hay en total en el departamento, ej: 50 -> 45)
+                    document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+                    
+                    // Métricas personales para el resto de tarjetas del funcionario
+                    const misVales = vd.filter(v => v.usrCc === currentUser.cc);
+                    document.getElementById("m_asig").innerText = misVales.length;
+                    document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                    document.getElementById("m_usados").innerText = misVales.filter(v => v.est === "usado").length;
+                    document.getElementById("m_canc").innerText = misVales.filter(v => v.est === "cancelado").length;
+                }
                 
                 document.getElementById("header_user_info").innerHTML = `<p style="margin:0; font-weight:600;">${currentUser.nombre}</p><p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p><span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>`;
                 
                 if (currentUser.rol === "admin") {
-                    document.getElementById("panel_admin").style.display = "grid"; document.getElementById("panel_funcionario").style.display = "none"; document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
-                    document.getElementById("panel_config_admin").style.display = currentUser.dept === "instrumentacion" ? "block" : "none";
+                    document.getElementById("panel_admin").style.display = "grid"; 
+                    document.getElementById("panel_funcionario").style.display = "none"; 
+                    document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
+                    
+                    const esInst = (currentUser.dept === "instrumentacion");
+                    document.getElementById("box_btn_logo").style.display = esInst ? "block" : "none";
+                    document.getElementById("box_btn_bg").style.display = esInst ? "block" : "none";
+
                     renderAdmin();
                 } else {
                     document.getElementById("panel_admin").style.display = "none"; document.getElementById("panel_funcionario").style.display = "block"; document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
