@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vales instrumentación Quirúrgica</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; padding: 20px; max-width: 1200px; margin: 0 auto; color: #334155; }
+        
+        /* ENCABEZADO CON IMAGEN DE FONDO COMPLETA */
+        header { 
+            background: #ffffff; 
+            background-size: 85% 120%; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            position: relative;
+            padding: 35px 48px; 
+            border-radius: 19px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            overflow: hidden;
+            min-height: 150px;
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(1px);
+            z-index: 1;
+            display: none;
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 24px; width: 100%; z-index: 2; position: relative; }
+        
+        .logo-preview { 
+            max-height: 150px; 
+            max-width: 400px; 
+            object-fit: contain; 
+            border-radius: 8px; 
+            display: none; 
+        }
+        
+        .header-title-box { flex-grow: 1; }
+        .header-title-box h1 { font-size: 22px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; }
+        .header-title-box p { font-size: 13px; font-weight: 500; color: #64748b; margin: 4px 0 0 0; }
+
+        #header_user_info { z-index: 2; position: relative; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+        .panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        h1, h2, h3 { margin: 0 0 12px 0; color: #0f172a; }
+        
+        input, select, textarea, button { width: 100%; padding: 11px 14px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #8b1a2b; box-shadow: 0 0 0 2px #fbcfe8; }
+
+        button { background: #8b1a2b; color: white; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+        button:hover { background: #6e1422; }
+        
+        .btn-sec { background: #10b981; } .btn-sec:hover { background: #059669; }
+        .btn-danger { background: #ef4444; } .btn-danger:hover { background: #dc2626; }
+        .btn-neutral { background: #64748b; } .btn-neutral:hover { background: #475569; }
+        .btn-warn { background: #8b1a2b; color: white; } .btn-warn:hover { background: #6e1422; }
+
+        /* BOTONES E INDICADORES CON COLOR VINOTINTO INSTITUCIONAL */
+        .btn-img-logo, .btn-img-bg, .btn-pin-style { 
+            background: #8b1a2b; 
+            color: white; 
+            border-left: 5px solid #5d111d; 
+            font-size: 13px; 
+            font-weight: 600; 
+            text-align: center; 
+            padding: 12px; 
+            cursor: pointer; 
+            margin: 0; 
+            border-radius: 8px; 
+            display: block; 
+            transition: all 0.2s;
+        }
+        .btn-img-logo:hover, .btn-img-bg:hover, .btn-pin-style:hover { background: #6e1422; }
+
+        .dept-tag { 
+            font-size: 12px; 
+            font-weight: bold; 
+            padding: 6px 12px; 
+            background: #8b1a2b; 
+            color: #ffffff; 
+            border-radius: 6px; 
+            letter-spacing: 0.5px;
+        }
+
+        /* RECUADROS DE METRICAS (VERDE, AZUL, ROJO, AMARILLO) */
+        .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
+        
+        .card { background: white; padding: 18px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .card h3 { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .card p { font-size: 28px; font-weight: bold; margin: 0; }
+
+        .card-libre { border-top: 5px solid #10b981; border-bottom: 1px solid #e2e8f0; }
+        .card-libre p { color: #059669; }
+        
+        .card-asig { border-top: 5px solid #2563eb; border-bottom: 1px solid #e2e8f0; }
+        .card-asig p { color: #1d4ed8; }
+
+        .card-usado { border-top: 5px solid #ef4444; border-bottom: 1px solid #e2e8f0; }
+        .card-usado p { color: #dc2626; }
+
+        .card-canc { border-top: 5px solid #f59e0b; border-bottom: 1px solid #e2e8f0; }
+        .card-canc p { color: #d97706; }
+
+        .vale-box { background: #0f172a; color: #38bdf8; font-size: 28px; text-align: center; padding: 20px; font-family: monospace; font-weight: bold; border-radius: 10px; margin: 15px 0; letter-spacing: 3px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .btn-copy { background: #334155; color: white; font-size: 13px; padding: 8px 16px; width: auto; margin: 0; border-radius: 6px; }
+        .btn-copy:hover { background: #475569; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; }
+
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .badge-libre { background: #dcfce7; color: #166534; }
+        .badge-asig { background: #dbeafe; color: #1e40af; }
+        .badge-usado { background: #fee2e2; color: #991b1b; }
+        .badge-canc { background: #fef3c7; color: #92400e; }
+
+        .tab-btn { width: auto; padding: 8px 16px; margin-right: 8px; background: #e2e8f0; color: #475569; display: inline-block; border-radius: 6px; }
+        .tab-btn.active { background: #8b1a2b; color: white; }
+        .lock-warning { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <!-- ENCABEZADO PRINCIPAL CON SOPORTE DE IMAGEN DE FONDO -->
+    <header id="main_header">
+        <div id="header_overlay" class="header-overlay"></div>
+        <div class="logo-container">
+            <img id="img_logo" class="logo-preview" alt="Logo Institucional">
+            <div class="header-title-box">
+                <h1>Vales instrumentación</h1>
+                <p>Sistema de Trazabilidad y Control de Vales</p>
+            </div>
+        </div>
+        <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
+    </header>
+
+    <!-- METRICAS DE ESTADO -->
+    <div id="sec_metrics" class="metrics" style="display:none;">
+        <div class="card card-libre"><h3>Disponibles Libres</h3><p id="m_libres">0</p></div>
+        <div class="card card-asig"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-usado"><h3>Usados</h3><p id="m_usados">0</p></div>
+        <div class="card card-canc"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+    </div>
+
+    <!-- SECCION AUTH (LOGIN / REGISTRO) -->
+    <div id="sec_auth" class="panel" style="max-width: 480px; margin: 20px auto;">
+        <div style="display:flex; margin-bottom:15px;">
+            <button class="tab-btn active" id="tab_login" onclick="switchAuthTab('login')">Ingresar</button>
+            <button class="tab-btn" id="tab_reg" onclick="switchAuthTab('reg')">Registrarse</button>
+        </div>
+
+        <div id="form_login">
+            <h2>🔑 Ingresar al Sistema</h2>
+            <label style="font-size:12px;">Selecciona tu Departamento:</label>
+            <select id="l_dept">
+                <option value="instrumentacion">Instrumentación</option>
+                <option value="enfermeria">Enfermería</option>
+            </select>
+
+            <label style="font-size:12px;">Número de Cédula:</label>
+            <input type="text" id="l_cc" placeholder="Ingresa tu número de cédula">
+
+            <div id="box_pin_admin" style="display:none;">
+                <label style="font-size:12px; color:#8b1a2b; font-weight:bold;">PIN de Seguridad Administradora:</label>
+                <input type="password" id="l_pin" placeholder="••••" maxlength="8">
+            </div>
+
+            <button onclick="login()">Ingresar</button>
+        </div>
+
+        <div id="form_reg" style="display:none;">
+            <h2>📝 Registro de Funcionario</h2>
+            <label style="font-size:12px;">Departamento:</label>
+            <select id="r_dept">
+                <option value="instrumentacion">Instrumentación</option>
+                <option value="enfermeria">Enfermería</option>
+            </select>
+
+            <label style="font-size:12px;">Nombre Completo:</label>
+            <input type="text" id="r_name" placeholder="Ej: Sandra Patricia Gómez">
+
+            <label style="font-size:12px;">Número de Cédula:</label>
+            <input type="text" id="r_cc" placeholder="Ej: 1098765432">
+
+            <button class="btn-sec" onclick="register()">Crear Cuenta</button>
+        </div>
+    </div>
+
+    <!-- SECCION PRINCIPAL CON SESION ACTIVA -->
+    <div id="sec_main" style="display:none;">
+
+        <!-- VISTA FUNCIONARIO -->
+        <div id="panel_funcionario" class="panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>🚕 Solicitud de Vales de Taxi</h2>
+                <span id="tag_dept_user" class="dept-tag">---</span>
+            </div>
+
+            <div id="inst_paso_solicitar">
+                <p>Presiona el botón para obtener un vale libre asignado a tu departamento:</p>
+                <button onclick="obtenerValeLibre()" class="btn-sec" style="font-size:16px; padding:15px;">
+                    🎫 Obtener Vale Libre
+                </button>
+            </div>
+
+            <div id="inst_paso_obtener" style="display:none;">
+                <p>Se te ha asignado el siguiente vale libre:</p>
+                <div class="vale-box">
+                    <span id="v_code_obtained">---</span>
+                    <button class="btn-copy" onclick="copiarCodigoVale('obtained')">📋 Copiar código</button>
+                </div>
+                <p style="font-size:13px; color:#64748b;">Fecha de Vencimiento del Vale: <strong id="v_fec_obtained">---</strong></p>
+                <button onclick="tomarVale()" style="font-size:16px; padding:14px; margin-top:10px;">
+                    ✋ Tomar Vale
+                </button>
+            </div>
+
+            <div id="inst_paso_tomado" style="display:none;">
+                <div class="lock-warning">
+                    🔒 Tienes un vale activo en curso. Debes registrar su resultado final para poder solicitar otro.
+                </div>
+
+                <div class="vale-box">
+                    <span id="v_code_active">---</span>
+                    <button class="btn-copy" onclick="copiarCodigoVale('active')">📋 Copiar código</button>
+                </div>
+
+                <h3 style="margin-top:20px;">¿Qué ocurrió con este servicio de taxi?</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:10px;">
+                    <button onclick="mostrarOpcion('uso')" class="btn-sec">✅ Usó el vale</button>
+                    <button onclick="accionNoUsoVale()" class="btn-neutral">↩️ No lo usó</button>
+                    <button onclick="mostrarOpcion('canc')" class="btn-danger">🚫 Servicio cancelado</button>
+                </div>
+
+                <div id="form_sub_uso" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+                    <label style="font-size:13px; font-weight:600;">Ingresa el valor total pagado ($ COP):</label>
+                    <input type="number" id="v_valor_servicio" placeholder="Ej: 22000">
+                    <button onclick="confirmarUso()">Confirmar Registro de Uso</button>
+                </div>
+
+                <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+                    <label style="font-size:13px; font-weight:600;">Selecciona el motivo de la cancelación:</label>
+                    <select id="v_motivo_cancelacion">
+                        <option value="Vale inactivo">Vale inactivo / Rechazado</option>
+                        <option value="No necesité el taxi">No necesité el taxi</option>
+                        <option value="Servicio de cirugía cancelado">Servicio de cirugía cancelado</option>
+                        <option value="Otro motivo">Otro motivo</option>
+                    </select>
+                    <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA PANEL ADMINISTRADORA -->
+        <div id="panel_admin" class="grid" style="display:none;">
+            <div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>➕ Agregar Vales</h2>
+                        <span id="tag_dept_admin" class="dept-tag">---</span>
+                    </div>
+                    <p style="font-size:11px; color:#64748b; margin-bottom:8px;">
+                        Pega los vales de 12 dígitos con su fecha de vencimiento (uno por línea).<br>
+                        Ejemplo: <code>123456789012 25/10/2028</code>
+                    </p>
+                    <textarea id="add_bulk_input" rows="5" placeholder="123456789012 25/10/2028&#10;987654321098 30/11/2028"></textarea>
+                    <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
+                </div>
+
+                <!-- PERSONALIZACION CON BOTONES VINOTINTO INSTITUCIONALES -->
+                <div class="panel">
+                    <h2>⚙️ Configuración de Administradora</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
+                        <label class="btn-img-logo">
+                            🖼️ Cambiar Logo
+                            <input type="file" id="input_logo" accept="image/*" style="display:none;">
+                        </label>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <label class="btn-img-bg">
+                            🏞️ Cambiar Fondo de Encabezado
+                            <input type="file" id="input_bg" accept="image/*" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>👥 Personal Registrado</h2>
+                    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario por nombre o CC..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
+                    <div style="max-height:220px; overflow-y:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cédula</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_usuarios"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                        <h2>📊 Control y Trazabilidad</h2>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <select id="export_filter" style="width:auto; margin:0; padding:6px; font-size:12px;">
+                                <option value="todos">Todos los vales</option>
+                                <option value="usados">Solo vales usados</option>
+                                <option value="libres">Solo vales disponibles</option>
+                                <option value="asignados">Solo vales en uso</option>
+                                <option value="cancelados">Solo vales cancelados</option>
+                            </select>
+                            <button onclick="descargarReporteExcel()" class="btn-sec" style="width:auto; font-size:12px; margin:0; padding:8px 12px;">📊 Exportar Excel</button>
+                        </div>
+                    </div>
+
+                    <div style="max-height:520px; overflow-y:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº de Vale</th>
+                                    <th>Estado</th>
+                                    <th>Funcionario</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Detalle</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_inventario"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const ADMIN_ROLES = {
+            "1012426957": "instrumentacion",
+            "1098789395": "enfermeria"
+        };
+
+        let adminPins = JSON.parse(localStorage.getItem("vi_admin_pins")) || {
+            "1012426957": "1234",
+            "1098789395": "1234"
+        };
+
+        let vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
+        let usuarios = JSON.parse(localStorage.getItem("vi_usuarios")) || [
+            { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
+            { cc: "1098789395", nombre: "Administradora Enfermería", dept: "enfermeria", rol: "admin" }
+        ];
+        let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedLogo = localStorage.getItem("vi_logo");
+            if (savedLogo) {
+                const img = document.getElementById("img_logo");
+                img.src = savedLogo;
+                img.style.display = "block";
+            }
+
+            const savedBg = localStorage.getItem("vi_bg");
+            if (savedBg) {
+                const header = document.getElementById("main_header");
+                header.style.backgroundImage = `url(${savedBg})`;
+                document.getElementById("header_overlay").style.display = "block";
+            }
+
+            document.getElementById("l_cc").addEventListener("input", function() {
+                const cc = this.value.trim();
+                const pinBox = document.getElementById("box_pin_admin");
+                if (ADMIN_ROLES[cc]) {
+                    pinBox.style.display = "block";
+                } else {
+                    pinBox.style.display = "none";
+                }
+            });
+
+            render();
+        });
+
+        document.getElementById("input_logo").onchange = function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById("img_logo");
+                    img.src = e.target.result;
+                    img.style.display = "block";
+                    localStorage.setItem("vi_logo", e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        };
+
+        document.getElementById("input_bg").onchange = function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const header = document.getElementById("main_header");
+                    header.style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById("header_overlay").style.display = "block";
+                    localStorage.setItem("vi_bg", e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        };
+
+        function saveData() {
+            localStorage.setItem("vi_vales", JSON.stringify(vales));
+            localStorage.setItem("vi_usuarios", JSON.stringify(usuarios));
+            localStorage.setItem("vi_session", JSON.stringify(currentUser));
+            localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
+            render();
+        }
+
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('form_login').style.display = 'block';
+                document.getElementById('form_reg').style.display = 'none';
+                document.getElementById('tab_login').classList.add('active');
+                document.getElementById('tab_reg').classList.remove('active');
+            } else {
+                document.getElementById('form_login').style.display = 'none';
+                document.getElementById('form_reg').style.display = 'block';
+                document.getElementById('tab_reg').classList.add('active');
+                document.getElementById('tab_login').classList.remove('active');
+            }
+        }
+
+        function register() {
+            const dept = document.getElementById("r_dept").value;
+            const nombre = document.getElementById("r_name").value.trim();
+            const cc = document.getElementById("r_cc").value.trim();
+
+            if (!nombre || !cc) {
+                alert("Completa tu nombre y cédula.");
+                return;
+            }
+
+            if (ADMIN_ROLES[cc]) {
+                alert("Esta cédula corresponde a una Administradora. Por favor inicia sesión.");
+                return;
+            }
+
+            const usuarioExistente = usuarios.find(u => u.cc === cc);
+            if (usuarioExistente) {
+                if (usuarioExistente.dept !== dept) {
+                    alert(`⚠️ ACCESO DENEGADO:\nTu cédula (${cc}) ya está registrada en el servicio de ${usuarioExistente.dept.toUpperCase()}.\n\nNo se permite crear cuenta en otro departamento. Si ingresaste al servicio incorrecto, debes esperar a que el administrador haga el reseteo de tu usuario.`);
+                } else {
+                    alert("Esta cédula ya se encuentra registrada en este departamento. Inicia sesión.");
+                }
+                return;
+            }
+
+            const newUser = { cc: cc, nombre: nombre, dept: dept, rol: "funcionario" };
+            usuarios.push(newUser);
+            currentUser = newUser;
+            saveData();
+            alert(`¡Registro exitoso en el departamento de ${dept.toUpperCase()}!`);
+        }
+
+        function login() {
+            const dept = document.getElementById("l_dept").value;
+            const cc = document.getElementById("l_cc").value.trim();
+            const pinInput = document.getElementById("l_pin").value.trim();
+
+            if (!cc) {
+                alert("Ingresa tu número de cédula.");
+                return;
+            }
+
+            if (ADMIN_ROLES[cc]) {
+                const adminDept = ADMIN_ROLES[cc];
+                if (adminDept !== dept) {
+                    alert(`Tu cédula de administración corresponde a ${adminDept.toUpperCase()}. Por favor selecciónalo.`);
+                    return;
+                }
+                
+                const pinCorrecto = adminPins[cc] || "1234";
+                if (pinInput === pinCorrecto) {
+                    currentUser = { cc: cc, nombre: `Admin ${adminDept.toUpperCase()}`, dept: adminDept, rol: "admin" };
+                    document.getElementById("l_pin").value = "";
+                    saveData();
+                    return;
+                } else {
+                    alert("PIN de seguridad incorrecto.");
+                    return;
+                }
+            }
+
+            const usuarioEnRegistros = usuarios.find(u => u.cc === cc);
+            if (usuarioEnRegistros) {
+                if (usuarioEnRegistros.dept !== dept) {
+                    alert(`⚠️ DEPARTAMENTO INCORRECTO:\nTu usuario está vinculado al servicio de ${usuarioEnRegistros.dept.toUpperCase()}.\n\nNo puedes ingresar a ${dept.toUpperCase()}. Si te logueaste o registraste en el departamento incorrecto, debes solicitar al administrador que realice el reseteo de tu usuario.`);
+                    return;
+                }
+            } else {
+                alert("Usuario no encontrado. Por favor verifica tu cédula o regístrate primero.");
+                return;
+            }
+
+            currentUser = usuarioEnRegistros;
+            saveData();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem("vi_session");
+            document.getElementById("l_cc").value = "";
+            document.getElementById("l_pin").value = "";
+            document.getElementById("box_pin_admin").style.display = "none";
+            render();
+        }
+
+        function cambiarPinAdmin() {
+            const pinActual = prompt("Ingresa tu PIN de seguridad actual:");
+            if (pinActual === adminPins[currentUser.cc]) {
+                const nuevoPin = prompt("Ingresa tu nuevo PIN de seguridad (mínimo 4 caracteres):");
+                if (nuevoPin && nuevoPin.trim().length >= 4) {
+                    adminPins[currentUser.cc] = nuevoPin.trim();
+                    saveData();
+                    alert("¡PIN actualizado con éxito!");
+                } else {
+                    alert("El PIN debe contener al menos 4 caracteres.");
+                }
+            } else if (pinActual !== null) {
+                alert("PIN actual incorrecto.");
+            }
+        }
+
+        function agregarValesMasivos() {
+            const rawText = document.getElementById("add_bulk_input").value.trim();
+            if (!rawText) {
+                alert("Por favor ingresa al menos un vale con su fecha.");
+                return;
+            }
+
+            const lines = rawText.split('\n');
+            let agregados = 0;
+            let duplicados = 0;
+
+            lines.forEach(line => {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                    const num = parts[0].trim().toUpperCase();
+                    const fec = parts[1].trim();
+
+                    if (num && fec) {
+                        const existe = vales.some(v => v.num === num && v.dept === currentUser.dept);
+                        if (!existe) {
+                            vales.push({
+                                num: num,
+                                fecVenc: fec,
+                                dept: currentUser.dept,
+                                est: "libre",
+                                usrNombre: "",
+                                usrCc: "",
+                                fechaHora: "",
+                                valor: "",
+                                motivo: ""
+                            });
+                            agregados++;
+                        } else {
+                            duplicados++;
+                        }
+                    }
+                }
+            });
+
+            document.getElementById("add_bulk_input").value = "";
+            saveData();
+            alert(`Carga finalizada:\n• ${agregados} vales agregados con éxito.\n• ${duplicados} omitidos por estar duplicados.`);
+        }
+
+        function eliminarVale(num) {
+            if (confirm(`¿Eliminar el vale ${num} del inventario de ${currentUser.dept.toUpperCase()}?`)) {
+                vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept));
+                saveData();
+            }
+        }
+
+        function eliminarUsuario(cc, nombre) {
+            if (confirm(`¿Realizar el RESETEO DE USUARIO para ${nombre} (${cc})?\n\nAl eliminarlo, su registro en ${currentUser.dept.toUpperCase()} quedará completamente liberado y sus vales activos volverán al inventario disponible.`)) {
+                vales.forEach(v => {
+                    if (v.usrCc === cc && (v.est === "obtenido" || v.est === "asignado")) {
+                        v.est = "libre";
+                        v.usrNombre = "";
+                        v.usrCc = "";
+                    }
+                });
+                usuarios = usuarios.filter(u => !(u.cc === cc && u.dept === currentUser.dept));
+                saveData();
+                alert(`Reseteo completado. El funcionario ${nombre} ya puede volver a registrarse.`);
+            }
+        }
+
+        function obtenerValeLibre() {
+            const activo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
+            if (activo) {
+                alert("Ya tienes un vale activo. Debes resolver su estado antes de solicitar otro.");
+                return;
+            }
+
+            const libre = vales.find(v => v.est === "libre" && v.dept === currentUser.dept);
+            if (!libre) {
+                alert(`No hay vales libres disponibles en ${currentUser.dept.toUpperCase()}.`);
+                return;
+            }
+
+            libre.est = "obtenido";
+            libre.usrNombre = currentUser.nombre;
+            libre.usrCc = currentUser.cc;
+            saveData();
+        }
+
+        function copiarCodigoVale(tipo) {
+            let vale = null;
+            if (tipo === 'obtained') {
+                vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
+            } else {
+                vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+            }
+
+            if (vale) {
+                navigator.clipboard.writeText(vale.num);
+                alert("Código de vale copiado: " + vale.num);
+            }
+        }
+
+        function tomarVale() {
+            const vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
+            if (vale) {
+                vale.est = "asignado";
+                saveData();
+            }
+        }
+
+        function mostrarOpcion(opc) {
+            if (opc === 'uso') {
+                document.getElementById("form_sub_uso").style.display = "block";
+                document.getElementById("form_sub_canc").style.display = "none";
+            } else if (opc === 'canc') {
+                document.getElementById("form_sub_canc").style.display = "block";
+                document.getElementById("form_sub_uso").style.display = "none";
+            }
+        }
+
+        function confirmarUso() {
+            const val = document.getElementById("v_valor_servicio").value;
+            if (!val || val <= 0) {
+                alert("Ingresa un valor válido en pesos COP.");
+                return;
+            }
+
+            const vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+            if (vale) {
+                vale.est = "usado";
+                vale.valor = val;
+                vale.fechaHora = new Date().toLocaleString("es-CO");
+                document.getElementById("v_valor_servicio").value = "";
+                saveData();
+                alert("Uso del vale registrado con éxito.");
+            }
+        }
+
+        function accionNoUsoVale() {
+            const vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+            if (vale && confirm("El vale se liberará para que otro compañero pueda utilizarlo. ¿Confirmar?")) {
+                vale.est = "libre";
+                vale.usrNombre = "";
+                vale.usrCc = "";
+                saveData();
+            }
+        }
+
+        function confirmarCancelacion() {
+            const mot = document.getElementById("v_motivo_cancelacion").value;
+            const vale = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+            if (vale) {
+                vale.est = "cancelado";
+                vale.motivo = mot;
+                vale.fechaHora = new Date().toLocaleString("es-CO");
+                saveData();
+                alert("Cancelación registrada correctamente.");
+            }
+        }
+
+        function render() {
+            if (!currentUser) {
+                document.getElementById("sec_metrics").style.display = "none";
+                document.getElementById("sec_auth").style.display = "block";
+                document.getElementById("sec_main").style.display = "none";
+                document.getElementById("header_user_info").innerHTML = "";
+            } else {
+                document.getElementById("sec_metrics").style.display = "grid";
+                document.getElementById("sec_auth").style.display = "none";
+                document.getElementById("sec_main").style.display = "block";
+
+                const valesFiltrados = vales.filter(v => v.dept === currentUser.dept);
+                document.getElementById("m_libres").innerText = valesFiltrados.filter(v => v.est === "libre").length;
+                document.getElementById("m_asig").innerText = valesFiltrados.filter(v => v.est === "obtenido" || v.est === "asignado").length;
+                document.getElementById("m_usados").innerText = valesFiltrados.filter(v => v.est === "usado").length;
+                document.getElementById("m_canc").innerText = valesFiltrados.filter(v => v.est === "cancelado").length;
+
+                document.getElementById("header_user_info").innerHTML = `
+                    <p style="margin:0; font-weight:600;">${currentUser.nombre}</p>
+                    <p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p>
+                    <span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>
+                `;
+
+                if (currentUser.rol === "admin") {
+                    document.getElementById("panel_admin").style.display = "grid";
+                    document.getElementById("panel_funcionario").style.display = "none";
+                    document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
+                    renderAdmin();
+                } else {
+                    document.getElementById("panel_admin").style.display = "none";
+                    document.getElementById("panel_funcionario").style.display = "block";
+                    document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
+                    renderFuncionario();
+                }
+            }
+        }
+
+        function renderFuncionario() {
+            const valeObtenido = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
+            const valeTomado = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+
+            if (valeTomado) {
+                document.getElementById("inst_paso_solicitar").style.display = "none";
+                document.getElementById("inst_paso_obtener").style.display = "none";
+                document.getElementById("inst_paso_tomado").style.display = "block";
+                document.getElementById("v_code_active").innerText = valeTomado.num;
+                document.getElementById("form_sub_uso").style.display = "none";
+                document.getElementById("form_sub_canc").style.display = "none";
+            } else if (valeObtenido) {
+                document.getElementById("inst_paso_solicitar").style.display = "none";
+                document.getElementById("inst_paso_obtener").style.display = "block";
+                document.getElementById("inst_paso_tomado").style.display = "none";
+                document.getElementById("v_code_obtained").innerText = valeObtenido.num;
+                document.getElementById("v_fec_obtained").innerText = valeObtenido.fecVenc;
+            } else {
+                document.getElementById("inst_paso_solicitar").style.display = "block";
+                document.getElementById("inst_paso_obtener").style.display = "none";
+                document.getElementById("inst_paso_tomado").style.display = "none";
+            }
+        }
+
+        function renderAdmin() {
+            const search = (document.getElementById("search_user").value || "").toLowerCase();
+            const tbodyUsr = document.getElementById("tbl_usuarios");
+            tbodyUsr.innerHTML = "";
+
+            usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
+                if (u.nombre.toLowerCase().includes(search) || u.cc.includes(search)) {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${u.nombre}</td>
+                        <td>${u.cc}</td>
+                        <td><button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;">🗑️ Reseteo</button></td>
+                    `;
+                    tbodyUsr.appendChild(tr);
+                }
+            });
+
+            const tbodyInv = document.getElementById("tbl_inventario");
+            tbodyInv.innerHTML = "";
+
+            vales.filter(v => v.dept === currentUser.dept).forEach(v => {
+                let badgeClass = "badge-libre";
+                if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
+                if (v.est === "usado") badgeClass = "badge-usado";
+                if (v.est === "cancelado") badgeClass = "badge-canc";
+
+                let detalle = "---";
+                if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')}`;
+                if (v.est === "cancelado") detalle = v.motivo;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${v.num}</strong></td>
+                    <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
+                    <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                    <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
+                    <td>${detalle}</td>
+                    <td><button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;">🗑️</button></td>
+                `;
+                tbodyInv.appendChild(tr);
+            });
+        }
+
+        function descargarReporteExcel() {
+            const filtro = document.getElementById("export_filter").value;
+            let valesDept = vales.filter(v => v.dept === currentUser.dept);
+
+            if (filtro === "usados") valesDept = valesDept.filter(v => v.est === "usado");
+            else if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
+            else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
+            else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
+
+            if (valesDept.length === 0) {
+                alert("No hay registros que coincidan con el filtro seleccionado.");
+                return;
+            }
+
+            let csv = "Numero Vale,Vencimiento,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
+            valesDept.forEach(v => {
+                csv += `"${v.num}","${v.fecVenc}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
+            });
+
+            const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
