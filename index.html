@@ -150,7 +150,7 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO (NAVEGACIÓN INTERNA FLUIDA) -->
+    <!-- METRICAS DE ESTADO (NAVEGACIÓN INTERNA FLUIDA TIPO SPA) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
         <div class="card card-libre" onclick="cambiarVistaSeccion('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
         <div class="card card-asig" onclick="cambiarVistaSeccion('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
@@ -353,7 +353,7 @@
                     </div>
                 </div>
 
-                <!-- VISTA 2: NAVEGACIÓN FLUIDA EN LA MISMA PESTAÑA (CON DESCARGA DE EXCEL) -->
+                <!-- VISTA 2: NAVEGACIÓN FLUIDA INTERNA (SIN ABRIR PESTAÑAS NUEVAS) -->
                 <div class="panel" id="vista_detalle_pagina" style="display:none;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #8b1a2b; padding-bottom:10px;">
                         <h2 id="titulo_vista_pagina" style="margin:0; color:#8b1a2b;">Detalle</h2>
@@ -744,7 +744,7 @@
             }
         }
 
-        // NAVEGACIÓN FLUIDA EN LA MISMA PESTAÑA (TIPO PÁGINA INTERNA)
+        // NAVEGACIÓN FLUIDA INTERNA (ESTILO SPA)
         function cambiarVistaSeccion(tipo) {
             vistaActualTipo = tipo;
             document.getElementById("vista_general").style.display = "none";
@@ -810,9 +810,28 @@
             renderAdmin();
         }
 
+        // FUNCIÓN SEGURA PARA DESCARGAR EL ARCHIVO EN LA MISMA PESTAÑA (SIN VENTANAS NUEVAS)
+        function descargarArchivoCSV(csvContent, nombreArchivo) {
+            const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+            
+            if (navigator.msSaveBlob) { // Para navegadores antiguos de Microsoft
+                navigator.msSaveBlob(blob, nombreArchivo);
+            } else {
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.setAttribute("download", nombreArchivo);
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        }
+
         function descargarExcelVistaActual() {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
-            let nombreArchivo = `Reporte_${currentUser.dept.toUpperCase()}_${vistaActualTipo.toUpperCase()}`;
+            let nombreArchivo = `Reporte_${currentUser.dept.toUpperCase()}_${vistaActualTipo.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
 
             if (vistaActualTipo === 'libres') {
                 valesDept = valesDept.filter(v => v.est === "libre");
@@ -846,11 +865,7 @@
                 csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga || ''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
             });
 
-            const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `${nombreArchivo}_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+            descargarArchivoCSV(csv, nombreArchivo);
 
             if (vistaActualTipo === 'usados') {
                 cambiarVistaSeccion('usados');
@@ -1007,11 +1022,8 @@
                 csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga || ''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
             });
 
-            const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+            const nombreArchivo = `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
+            descargarArchivoCSV(csv, nombreArchivo);
         }
     </script>
 </body>
