@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vales instrumentación</title>
+    <title id="page_title">Vales Sistema</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; padding: 20px; max-width: 1200px; margin: 0 auto; color: #334155; }
@@ -95,7 +95,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* RECUADROS DE METRICAS (VERDE, AZUL, ROJO, AMARILLO) */
+        /* RECUADROS DE METRICAS */
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
         
@@ -136,13 +136,13 @@
 </head>
 <body>
 
-    <!-- ENCABEZADO PRINCIPAL CON SOPORTE DE IMAGEN DE FONDO -->
+    <!-- ENCABEZADO PRINCIPAL -->
     <header id="main_header">
         <div id="header_overlay" class="header-overlay"></div>
         <div class="logo-container">
             <img id="img_logo" class="logo-preview" alt="Logo Institucional">
             <div class="header-title-box">
-                <h1>Vales instrumentación</h1>
+                <h1 id="header_title_text">Vales Sistema</h1>
                 <p>Sistema de Trazabilidad y Control de Vales</p>
             </div>
         </div>
@@ -192,7 +192,7 @@
             </select>
 
             <label style="font-size:12px;">Nombre Completo:</label>
-            <input type="text" id="r_name" placeholder="Ej: Maximiliano Wolf">
+            <input type="text" id="r_name" placeholder="Ej: Maximiliano Peralta">
 
             <label style="font-size:12px;">Número de Cédula:</label>
             <input type="text" id="r_cc" placeholder="Ej: 1098765432">
@@ -282,7 +282,7 @@
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
                 </div>
 
-                <!-- PERSONALIZACION CON BOTONES VINOTINTO INSTITUCIONALES -->
+                <!-- CONFIGURACION DE ADMIN -->
                 <div class="panel">
                     <h2>⚙️ Configuración de Administradora</h2>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -330,7 +330,6 @@
                                 <option value="asignados">Solo vales en uso</option>
                                 <option value="cancelados">Solo vales cancelados</option>
                             </select>
-                            <!-- Botón de Exportar Excel con color institucional vinotinto (#8b1a2b) -->
                             <button onclick="descargarReporteExcel()" style="width:auto; font-size:12px; margin:0; padding:8px 12px; background:#8b1a2b;">📊 Exportar Excel</button>
                         </div>
                     </div>
@@ -468,7 +467,7 @@
             const usuarioExistente = usuarios.find(u => u.cc === cc);
             if (usuarioExistente) {
                 if (usuarioExistente.dept !== dept) {
-                    alert(`⚠️ ACCESO DENEGADO:\nTu cédula (${cc}) ya está registrada en el servicio de ${usuarioExistente.dept.toUpperCase()}.\n\nNo se permite crear cuenta en otro departamento. Si ingresaste al servicio incorrecto, debes esperar a que el administrador haga el reseteo de tu usuario.`);
+                    alert(`⚠️ ACCESO DENEGADO:\nTu cédula (${cc}) ya está registrada en el servicio de ${usuarioExistente.dept.toUpperCase()}.\n\nNo se permite crear cuenta en otro departamento.`);
                 } else {
                     alert("Esta cédula ya se encuentra registrada en este departamento. Inicia sesión.");
                 }
@@ -514,7 +513,7 @@
             const usuarioEnRegistros = usuarios.find(u => u.cc === cc);
             if (usuarioEnRegistros) {
                 if (usuarioEnRegistros.dept !== dept) {
-                    alert(`⚠️ DEPARTAMENTO INCORRECTO:\nTu usuario está vinculado al servicio de ${usuarioEnRegistros.dept.toUpperCase()}.\n\nNo puedes ingresar a ${dept.toUpperCase()}. Si te logueaste o registraste en el departamento incorrecto, debes solicitar al administrador que realice el reseteo de tu usuario.`);
+                    alert(`⚠️ DEPARTAMENTO INCORRECTO:\nTu usuario está vinculado al servicio de ${usuarioEnRegistros.dept.toUpperCase()}.\n\nNo puedes ingresar a ${dept.toUpperCase()}.`);
                     return;
                 }
             } else {
@@ -603,7 +602,7 @@
         }
 
         function eliminarUsuario(cc, nombre) {
-            if (confirm(`¿Realizar el RESETEO DE USUARIO para ${nombre} (${cc})?\n\nAl eliminarlo, su registro en ${currentUser.dept.toUpperCase()} quedará completamente liberado y sus vales activos volverán al inventario disponible.`)) {
+            if (confirm(`¿Realizar el RESETEO DE USUARIO para ${nombre} (${cc})?\n\nAl eliminarlo, su registro en ${currentUser.dept.toUpperCase()} quedará completamente liberado.`)) {
                 vales.forEach(v => {
                     if (v.usrCc === cc && (v.est === "obtenido" || v.est === "asignado")) {
                         v.est = "libre";
@@ -709,6 +708,14 @@
         }
 
         function render() {
+            // Cambio dinámico del título según el departamento activo
+            let tituloDinamico = "Vales Sistema";
+            if (currentUser) {
+                tituloDinamico = "Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1);
+            }
+            document.getElementById("page_title").innerText = tituloDinamico;
+            document.getElementById("header_title_text").innerText = tituloDinamico;
+
             if (!currentUser) {
                 document.getElementById("sec_metrics").style.display = "none";
                 document.getElementById("sec_auth").style.display = "block";
