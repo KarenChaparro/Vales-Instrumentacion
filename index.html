@@ -150,12 +150,12 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO (CON CLIC PARA FILTRAR) -->
+    <!-- METRICAS DE ESTADO (VISTA INICIAL) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
-        <div class="card card-libre" onclick="filtrarDesdeTarjeta('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig" onclick="filtrarDesdeTarjeta('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
-        <div class="card card-usado" onclick="filtrarDesdeTarjeta('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
-        <div class="card card-canc" onclick="filtrarDesdeTarjeta('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+        <div class="card card-libre" onclick="abrirVistaDetalle('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
+        <div class="card card-asig" onclick="abrirVistaDetalle('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-usado" onclick="abrirVistaDetalle('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
+        <div class="card card-canc" onclick="abrirVistaDetalle('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
     </div>
 
     <!-- SECCION AUTH (LOGIN / REGISTRO) -->
@@ -283,7 +283,7 @@
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
                 </div>
 
-                <!-- CONFIGURACION DE ADMIN (SOLO VISIBLE PARA INSTRUMENTACIÓN) -->
+                <!-- CONFIGURACION DE ADMIN (SOLO INSTRUMENTACION) -->
                 <div class="panel" id="panel_config_admin" style="display:none;">
                     <h2>⚙️ Configuración de Administradora</h2>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -320,7 +320,8 @@
             </div>
 
             <div>
-                <div class="panel">
+                <!-- VISTA 1: CONTROL Y TRAZABILIDAD GENERAL -->
+                <div class="panel" id="vista_general">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
                         <h2>📊 Control y Trazabilidad</h2>
                         <div style="display:flex; gap:5px; align-items:center;">
@@ -351,6 +352,30 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- VISTA 2: NUEVA "HOJA" O PESTAÑA INDIVIDUAL AL HACER CLIC EN LAS TARJETAS -->
+                <div class="panel" id="vista_detalle_tarjeta" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #8b1a2b; padding-bottom:10px;">
+                        <h2 id="titulo_vista_detalle" style="margin:0; color:#8b1a2b;">Detalle de Vales</h2>
+                        <button onclick="cerrarVistaDetalle()" class="btn-neutral" style="width:auto; margin:0; padding:8px 16px; font-size:13px;">⬅️ Volver al Panel Principal</button>
+                    </div>
+
+                    <div style="max-height:520px; overflow-y:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº de Vale</th>
+                                    <th>Estado</th>
+                                    <th>Funcionario</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_detalle_tarjeta"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -708,13 +733,64 @@
             }
         }
 
-        // Función para cambiar el filtro del select al hacer clic en las tarjetas de métricas
-        function filtrarDesdeTarjeta(tipoFiltro) {
-            const selectFiltro = document.getElementById("export_filter");
-            if (selectFiltro) {
-                selectFiltro.value = tipoFiltro;
-                renderAdmin();
+        // FUNCIONES PARA ABRIR Y CERRAR LA "OTRA HOJA" / VISTA INDIVIDUAL
+        function abrirVistaDetalle(tipo) {
+            document.getElementById("vista_general").style.display = "none";
+            document.getElementById("vista_detalle_tarjeta").style.display = "block";
+
+            let titulo = "Detalle";
+            let valesFiltrados = vales.filter(v => v.dept === currentUser.dept);
+
+            if (tipo === 'libres') {
+                titulo = "Vales Disponibles (Libres)";
+                valesFiltrados = valesFiltrados.filter(v => v.est === "libre");
+            } else if (tipo === 'asignados') {
+                titulo = "Vales Sin Usar (Asignados)";
+                valesFiltrados = valesFiltrados.filter(v => v.est === "obtenido" || v.est === "asignado");
+            } else if (tipo === 'usados') {
+                titulo = "Vales Usados / Gastados";
+                valesFiltrados = valesFiltrados.filter(v => v.est === "usado");
+            } else if (tipo === 'cancelados') {
+                titulo = "Vales Cancelados";
+                valesFiltrados = valesFiltrados.filter(v => v.est === "cancelado");
             }
+
+            document.getElementById("titulo_vista_detalle").innerText = titulo;
+
+            const tbody = document.getElementById("tbl_detalle_tarjeta");
+            tbody.innerHTML = "";
+
+            if (valesFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:20px;">No hay registros en esta categoría.</td></tr>`;
+                return;
+            }
+
+            valesFiltrados.forEach(v => {
+                let badgeClass = "badge-libre";
+                if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
+                if (v.est === "usado") badgeClass = "badge-usado";
+                if (v.est === "cancelado") badgeClass = "badge-canc";
+
+                let detalle = "---";
+                if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')}`;
+                if (v.est === "cancelado") detalle = v.motivo;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${v.num}</strong></td>
+                    <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
+                    <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                    <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
+                    <td>${detalle}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function cerrarVistaDetalle() {
+            document.getElementById("vista_detalle_tarjeta").style.display = "none";
+            document.getElementById("vista_general").style.display = "block";
+            renderAdmin();
         }
 
         function render() {
@@ -752,7 +828,6 @@
                     document.getElementById("panel_funcionario").style.display = "none";
                     document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
                     
-                    // Restricción: Solo el administrador de instrumentación puede cambiar logo y fondo
                     if (currentUser.dept === "instrumentacion") {
                         document.getElementById("panel_config_admin").style.display = "block";
                     } else {
