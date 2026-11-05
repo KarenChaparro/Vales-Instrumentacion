@@ -150,12 +150,12 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO (ABRE PESTAÑA NUEVA AL HACER CLIC) -->
+    <!-- METRICAS DE ESTADO (NAVEGACIÓN INTERNA FLUIDA) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
-        <div class="card card-libre" onclick="abrirHojaNueva('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig" onclick="abrirHojaNueva('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
-        <div class="card card-usado" onclick="abrirHojaNueva('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
-        <div class="card card-canc" onclick="abrirHojaNueva('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+        <div class="card card-libre" onclick="cambiarVistaSeccion('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
+        <div class="card card-asig" onclick="cambiarVistaSeccion('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-usado" onclick="cambiarVistaSeccion('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
+        <div class="card card-canc" onclick="cambiarVistaSeccion('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
     </div>
 
     <!-- SECCION AUTH (LOGIN / REGISTRO) -->
@@ -320,7 +320,8 @@
             </div>
 
             <div>
-                <div class="panel">
+                <!-- VISTA 1: CONTROL Y TRAZABILIDAD GENERAL -->
+                <div class="panel" id="vista_general">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
                         <h2>📊 Control y Trazabilidad</h2>
                         <div style="display:flex; gap:5px; align-items:center;">
@@ -342,7 +343,7 @@
                                     <th>Nº de Vale</th>
                                     <th>Estado</th>
                                     <th>Funcionario</th>
-                                    <th>Fecha / Hora</th>
+                                    <th>Carga / Uso</th>
                                     <th>Detalle</th>
                                     <th>Acción</th>
                                 </tr>
@@ -351,6 +352,37 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- VISTA 2: NAVEGACIÓN FLUIDA EN LA MISMA PESTAÑA (CON DESCARGA DE EXCEL) -->
+                <div class="panel" id="vista_detalle_pagina" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #8b1a2b; padding-bottom:10px;">
+                        <h2 id="titulo_vista_pagina" style="margin:0; color:#8b1a2b;">Detalle</h2>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="descargarExcelVistaActual()" class="btn-sec" style="width:auto; margin:0; padding:8px 14px; font-size:13px;">📊 Descargar Excel</button>
+                            <button onclick="regresarAlPanelPrincipal()" class="btn-neutral" style="width:auto; margin:0; padding:8px 14px; font-size:13px;">⬅️ Volver</button>
+                        </div>
+                    </div>
+
+                    <p id="subtitulo_control_usados" style="font-size:12px; color:#64748b; margin-bottom:10px; display:none;">
+                        💡 <em>Nota: Estos son únicamente los vales usados pendientes de cobro/renovación. Al descargar este Excel, se marcarán automáticamente como procesados para que no se repitan en futuras descargas.</em>
+                    </p>
+
+                    <div style="max-height:480px; overflow-y:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº de Vale</th>
+                                    <th>Estado</th>
+                                    <th>Funcionario</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_detalle_pagina"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -373,6 +405,7 @@
             { cc: "1098789395", nombre: "Administradora Enfermería", dept: "enfermeria", rol: "admin" }
         ];
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
+        let vistaActualTipo = "";
 
         document.addEventListener("DOMContentLoaded", () => {
             const savedLogo = localStorage.getItem("vi_logo");
@@ -561,6 +594,7 @@
             const lines = rawText.split('\n');
             let agregados = 0;
             let duplicados = 0;
+            const fechaCargaActual = new Date().toLocaleDateString("es-CO");
 
             lines.forEach(line => {
                 const parts = line.trim().split(/\s+/);
@@ -580,7 +614,9 @@
                                 usrCc: "",
                                 fechaHora: "",
                                 valor: "",
-                                motivo: ""
+                                motivo: "",
+                                fechaCarga: fechaCargaActual,
+                                descargadoUsado: false
                             });
                             agregados++;
                         } else {
@@ -708,103 +744,117 @@
             }
         }
 
-        // FUNCIÓN PARA ABRIR UNA NUEVA PESTAÑA LIMPIA CON LA INFORMACIÓN DETALLADA
-        function abrirHojaNueva(tipo) {
+        // NAVEGACIÓN FLUIDA EN LA MISMA PESTAÑA (TIPO PÁGINA INTERNA)
+        function cambiarVistaSeccion(tipo) {
+            vistaActualTipo = tipo;
+            document.getElementById("vista_general").style.display = "none";
+            document.getElementById("vista_detalle_pagina").style.display = "block";
+
             let titulo = "Detalle";
             let valesFiltrados = vales.filter(v => v.dept === currentUser.dept);
+            const subNota = document.getElementById("subtitulo_control_usados");
 
             if (tipo === 'libres') {
                 titulo = "Vales Disponibles (Libres)";
                 valesFiltrados = valesFiltrados.filter(v => v.est === "libre");
+                subNota.style.display = "none";
             } else if (tipo === 'asignados') {
                 titulo = "Vales Sin Usar (Asignados)";
                 valesFiltrados = valesFiltrados.filter(v => v.est === "obtenido" || v.est === "asignado");
+                subNota.style.display = "none";
             } else if (tipo === 'usados') {
-                titulo = "Vales Usados / Gastados";
-                valesFiltrados = valesFiltrados.filter(v => v.est === "usado");
+                titulo = "Vales Usados / Gastados (Pendientes de Cobro)";
+                valesFiltrados = valesFiltrados.filter(v => v.est === "usado" && !v.descargadoUsado);
+                subNota.style.display = "block";
             } else if (tipo === 'cancelados') {
                 titulo = "Vales Cancelados";
                 valesFiltrados = valesFiltrados.filter(v => v.est === "cancelado");
+                subNota.style.display = "none";
             }
 
-            // Crear la ventana o pestaña nueva con diseño independiente
-            let nuevaVentana = window.open("", "_blank");
-            
-            let contenidoHtml = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${titulo} - ${currentUser.dept.toUpperCase()}</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 30px; color: #334155; max-width: 1000px; margin: 0 auto; }
-                        h2 { color: #8b1a2b; border-bottom: 2px solid #8b1a2b; padding-bottom: 10px; margin-top: 0; }
-                        .info-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-                        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-                        th, td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-                        th { background: #8b1a2b; color: white; font-weight: 600; }
-                        .badge { padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
-                        .badge-libre { background: #dcfce7; color: #166534; }
-                        .badge-asig { background: #dbeafe; color: #1e40af; }
-                        .badge-usado { background: #fee2e2; color: #991b1b; }
-                        .badge-canc { background: #fef3c7; color: #92400e; }
-                        .btn-cerrar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px; }
-                        .btn-cerrar:hover { background: #475569; }
-                    </style>
-                </head>
-                <body>
-                    <div class="info-box">
-                        <h2>📋 ${titulo}</h2>
-                        <p>Departamento: <strong>${currentUser.dept.toUpperCase()}</strong> | Total registros: <strong>${valesFiltrados.length}</strong></p>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nº de Vale</th>
-                                    <th>Estado</th>
-                                    <th>Funcionario</th>
-                                    <th>Fecha / Hora</th>
-                                    <th>Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
+            document.getElementById("titulo_vista_pagina").innerText = titulo;
+
+            const tbody = document.getElementById("tbl_detalle_pagina");
+            tbody.innerHTML = "";
 
             if (valesFiltrados.length === 0) {
-                contenidoHtml += `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:30px;">No hay registros disponibles en esta categoría.</td></tr>`;
-            } else {
-                valesFiltrados.forEach(v => {
-                    let badgeClass = "badge-libre";
-                    if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
-                    if (v.est === "usado") badgeClass = "badge-usado";
-                    if (v.est === "cancelado") badgeClass = "badge-canc";
-
-                    let detalle = "---";
-                    if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')} COP`;
-                    if (v.est === "cancelado") detalle = v.motivo;
-
-                    contenidoHtml += `
-                        <tr>
-                            <td><strong>${v.num}</strong></td>
-                            <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
-                            <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                            <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
-                            <td>${detalle}</td>
-                        </tr>
-                    `;
-                });
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:30px;">No hay registros pendientes en esta categoría.</td></tr>`;
+                return;
             }
 
-            contenidoHtml += `
-                            </tbody>
-                        </table>
-                        <button class="btn-cerrar" onclick="window.close()">✖️ Cerrar Pestaña</button>
-                    </div>
-                </body>
-                </html>
-            `;
+            valesFiltrados.forEach(v => {
+                let badgeClass = "badge-libre";
+                if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
+                if (v.est === "usado") badgeClass = "badge-usado";
+                if (v.est === "cancelado") badgeClass = "badge-canc";
 
-            nuevaVentana.document.write(contenidoHtml);
-            nuevaVentana.document.close();
+                let detalle = "---";
+                if (v.est === "usado") detalle = `$ ${Number(v.valor).toLocaleString('es-CO')} COP`;
+                if (v.est === "cancelado") detalle = v.motivo;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${v.num}</strong></td>
+                    <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
+                    <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                    <td>${v.fechaHora || "Carga: " + (v.fechaCarga || "N/A")}</td>
+                    <td>${detalle}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function regresarAlPanelPrincipal() {
+            document.getElementById("vista_detalle_pagina").style.display = "none";
+            document.getElementById("vista_general").style.display = "block";
+            renderAdmin();
+        }
+
+        function descargarExcelVistaActual() {
+            let valesDept = vales.filter(v => v.dept === currentUser.dept);
+            let nombreArchivo = `Reporte_${currentUser.dept.toUpperCase()}_${vistaActualTipo.toUpperCase()}`;
+
+            if (vistaActualTipo === 'libres') {
+                valesDept = valesDept.filter(v => v.est === "libre");
+            } else if (vistaActualTipo === 'asignados') {
+                valesDept = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
+            } else if (vistaActualTipo === 'usados') {
+                let pendientes = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
+                if (pendientes.length === 0) {
+                    alert("No hay nuevos vales usados pendientes de descarga.");
+                    return;
+                }
+                valesDept = pendientes;
+
+                vales.forEach(v => {
+                    if (v.dept === currentUser.dept && v.est === "usado" && !v.descargadoUsado) {
+                        v.descargadoUsado = true;
+                    }
+                });
+                saveData();
+            } else if (vistaActualTipo === 'cancelados') {
+                valesDept = valesDept.filter(v => v.est === "cancelado");
+            }
+
+            if (valesDept.length === 0) {
+                alert("No hay registros para exportar.");
+                return;
+            }
+
+            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
+            valesDept.forEach(v => {
+                csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga || ''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
+            });
+
+            const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${nombreArchivo}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+
+            if (vistaActualTipo === 'usados') {
+                cambiarVistaSeccion('usados');
+            }
         }
 
         function render() {
@@ -828,7 +878,7 @@
                 const valesFiltrados = vales.filter(v => v.dept === currentUser.dept);
                 document.getElementById("m_libres").innerText = valesFiltrados.filter(v => v.est === "libre").length;
                 document.getElementById("m_asig").innerText = valesFiltrados.filter(v => v.est === "obtenido" || v.est === "asignado").length;
-                document.getElementById("m_usados").innerText = valesFiltrados.filter(v => v.est === "usado").length;
+                document.getElementById("m_usados").innerText = valesFiltrados.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                 document.getElementById("m_canc").innerText = valesFiltrados.filter(v => v.est === "cancelado").length;
 
                 document.getElementById("header_user_info").innerHTML = `
@@ -930,7 +980,7 @@
                     <td><strong>${v.num}</strong></td>
                     <td><span class="badge ${badgeClass}">${v.est.toUpperCase()}</span></td>
                     <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                    <td>${v.fechaHora || "Venc: " + v.fecVenc}</td>
+                    <td>${v.fechaCarga ? "Carga: " + v.fechaCarga : (v.fechaHora || "Venc: " + v.fecVenc)}</td>
                     <td>${detalle}</td>
                     <td><button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;">🗑️</button></td>
                 `;
@@ -952,9 +1002,9 @@
                 return;
             }
 
-            let csv = "Numero Vale,Vencimiento,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
+            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Funcionario,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
             valesDept.forEach(v => {
-                csv += `"${v.num}","${v.fecVenc}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
+                csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga || ''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
             });
 
             const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
