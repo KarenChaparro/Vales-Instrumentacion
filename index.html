@@ -132,10 +132,23 @@
 
     <!-- METRICAS DE ESTADO (ABREN PESTAÑA NUEVA AL HACER CLIC) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
-        <div class="card card-libre" onclick="abrirPestanaDetalle('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig" onclick="abrirPestanaDetalle('asignados')"><h3>Sin Usar</h3><p id="m_asig">0</p></div>
-        <div class="card card-usado" onclick="abrirPestanaDetalle('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
-        <div class="card card-canc" onclick="abrirPestanaDetalle('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+        <div class="card card-libre" onclick="abrirPestanaDetalle('libres')">
+            <h3>Disponibles</h3>
+            <p id="m_libres">0</p>
+        </div>
+        <div class="card card-asig" onclick="abrirPestanaDetalle('asignados')">
+            <h3>Asignados</h3>
+            <p id="m_asig">0</p>
+            <div style="font-size:11px; font-weight:600; color:#2563eb; margin-top:4px;" id="m_asig_curso">0 en curso</div>
+        </div>
+        <div class="card card-usado" onclick="abrirPestanaDetalle('usados')">
+            <h3>Usados</h3>
+            <p id="m_usados">0</p>
+        </div>
+        <div class="card card-canc" onclick="abrirPestanaDetalle('cancelados')">
+            <h3>Cancelados</h3>
+            <p id="m_canc">0</p>
+        </div>
     </div>
 
     <!-- SECCION AUTH (LOGIN / REGISTRO) -->
@@ -287,7 +300,7 @@
                                 <option value="todos">Todos los vales</option>
                                 <option value="usados">Solo vales usados</option>
                                 <option value="libres">Solo vales disponibles</option>
-                                <option value="asignados">Solo vales en uso</option>
+                                <option value="asignados">Solo vales asignados (Historial)</option>
                                 <option value="cancelados">Solo vales cancelados</option>
                             </select>
                             <button onclick="descargarReporteExcel()" style="width:auto; font-size:12px; margin:0; padding:8px 12px;">📊 Descargar</button>
@@ -348,8 +361,9 @@
                 titulo = "Vales Disponibles";
                 datosMostrar = valesDept.filter(v => v.est === "libre");
             } else if (tipo === 'asignados') {
-                titulo = "Vales Sin Usar";
-                datosMostrar = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
+                titulo = "Vales Asignados";
+                // Muestra TODOS los que tienen usuario (obtenidos, asignados, usados, cancelados)
+                datosMostrar = valesDept.filter(v => v.est !== "libre");
             } else if (tipo === 'usados') {
                 titulo = "Vales Usados";
                 // Filtra para mostrar solo los que NO han sido descargados todavía
@@ -378,8 +392,8 @@
                         .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
                         .btn-excel:hover { background: #059669; }
                         
-                        .btn-cerrar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
-                        .btn-cerrar:hover { background: #475569; }
+                        .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+                        .btn-cerrar:hover { background: #dc2626; }
 
                         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
@@ -405,11 +419,11 @@
                                     <th>Estado</th>
                                     <th>Funcionario</th>
                                     <th>Fecha y Hora</th>
-                                    <th>Detalle</th>
+                                    <th>Detalle (Uso/Motivo)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No hay registros pendientes en esta categoría.</td></tr>' : ''}
+                                ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No hay registros para mostrar en esta categoría.</td></tr>' : ''}
                                 ${datosMostrar.map(v => `
                                     <tr>
                                         <td><strong>${v.num}</strong></td>
@@ -443,12 +457,21 @@
 
                             // 2. Descargar el archivo
                             const blob = new Blob(["\\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-                            const link = document.createElement("a");
-                            link.href = URL.createObjectURL(blob);
-                            link.download = "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv";
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
+                            
+                            // Método seguro para descarga de blob en nueva pestaña
+                            if (navigator.msSaveBlob) { 
+                                navigator.msSaveBlob(blob, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
+                            } else {
+                                const link = document.createElement("a");
+                                const url = URL.createObjectURL(blob);
+                                link.href = url;
+                                link.setAttribute("download", "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
+                                link.style.display = "none";
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                            }
 
                             // 3. Lógica para NO REPETIR vales usados
                             if (tipoVista === 'usados') {
@@ -635,9 +658,10 @@
         function descargarReporteExcel() {
             const filtro = document.getElementById("export_filter").value;
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
+            
             if (filtro === "usados") valesDept = valesDept.filter(v => v.est === "usado");
             else if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
-            else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
+            else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
             else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
 
             if (valesDept.length === 0) return alert("No hay registros.");
@@ -645,9 +669,20 @@
             valesDept.forEach(v => csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga||''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`);
             
             const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-            link.download = `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            
+            if (navigator.msSaveBlob) { 
+                navigator.msSaveBlob(blob, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
+            } else {
+                const link = document.createElement("a"); 
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.setAttribute("download", `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
+                link.style.display = "none";
+                document.body.appendChild(link); 
+                link.click(); 
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
         }
 
         function renderAdmin() {
@@ -663,7 +698,7 @@
             let vd = vales.filter(v => v.dept === currentUser.dept);
             if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
             else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
-            else if (filtro === "asignados") vd = vd.filter(v => v.est === "obtenido" || v.est === "asignado");
+            else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
             else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
 
             vd.forEach(v => {
@@ -681,10 +716,18 @@
             } else {
                 document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
                 const vd = vales.filter(v => v.dept === currentUser.dept);
+                
                 document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
-                document.getElementById("m_asig").innerText = vd.filter(v => v.est === "obtenido" || v.est === "asignado").length;
-                // AQUI MUESTRA SOLO LOS USADOS QUE FALTAN POR DESCARGAR
+                
+                // Métrica de Asignados: Total que tienen o tuvieron funcionario
+                const asignadosTotal = vd.filter(v => v.est !== "libre");
+                document.getElementById("m_asig").innerText = asignadosTotal.length;
+                // Submétrica: Cuántos de esos están en curso (aún en el taxi sin reportar)
+                document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                
+                // Muestra SOLO los usados que faltan por descargar
                 document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
+                
                 document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 
                 document.getElementById("header_user_info").innerHTML = `<p style="margin:0; font-weight:600;">${currentUser.nombre}</p><p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p><span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>`;
