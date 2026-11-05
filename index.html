@@ -123,18 +123,5 @@
         </div>
     </div>
 <script>
-    function filtrarTabla(estadoFiltro) {
-        const filas = document.querySelectorAll('#tabla-trazabilidad tbody tr');
-        filas.forEach(fila => {
-            const estadoFila = fila.getAttribute('data-estado');
-            if (estadoFiltro === 'todos' || estadoFila === estadoFiltro) {
-                fila.style.display = '';
-            } else {
-                fila.style.display = 'none';
-            }
-        });
-    }
-</script>
-
 </body>
 </html>
