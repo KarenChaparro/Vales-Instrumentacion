@@ -6,7 +6,7 @@
     <title>Sistema de Trazabilidad y Control de Vales</title>
     <style>
         :root {
-            --color-institucional: #004A8F; /* Color institucional unificado */
+            --color-institucional: #004A8F;
             --color-secundario: #333333;
             --color-fondo: #f4f6f9;
         }
@@ -35,10 +35,10 @@
             align-items: center;
         }
 
-        /* Tarjetas interactivas de resumen */
+        /* Tarjetas de resumen en cuadrícula perfecta */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -60,7 +60,7 @@
         }
 
         .card h3 {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
             margin-bottom: 10px;
             text-transform: uppercase;
@@ -72,7 +72,7 @@
             color: var(--color-institucional);
         }
 
-        /* Sección de Roles actualizados */
+        /* Roles */
         .roles-container {
             display: flex;
             gap: 15px;
@@ -92,26 +92,23 @@
             font-weight: 600;
         }
 
-        /* Botón Institucional */
+        /* Botón */
         .btn-exportar {
-            background-color: var(--color-institucional);
-            color: white;
+            background-color: white;
+            color: var(--color-institucional);
             border: none;
             padding: 10px 18px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: opacity 0.2s;
+            transition: background-color 0.2s;
         }
 
         .btn-exportar:hover {
-            opacity: 0.9;
+            background-color: #f0f0f0;
         }
 
-        /* Tabla de Control y Trazabilidad */
+        /* Tabla */
         .table-container {
             background: white;
             padding: 20px;
@@ -146,13 +143,13 @@
             <button class="btn-exportar" onclick="exportarExcel()">Exportar Excel</button>
         </header>
 
-        <!-- Roles Actualizados -->
+        <!-- Roles -->
         <div class="roles-container">
             <span class="role-badge">Instrumentadores</span>
             <span class="role-badge">Aux. de lavado</span>
         </div>
 
-        <!-- Tarjetas de Resumen (Con filtro interactivo y texto limpio) -->
+        <!-- Tarjetas de Resumen -->
         <div class="cards-grid">
             <div class="card" onclick="filtrarTabla('disponibles')">
                 <h3>Disponibles</h3>
@@ -172,7 +169,7 @@
             </div>
         </div>
 
-        <!-- Tabla de Trazabilidad -->
+        <!-- Tabla -->
         <div class="table-container">
             <h3>Control y Trazabilidad</h3>
             <table id="tabla-trazabilidad">
@@ -206,10 +203,8 @@
     </div>
 
     <script>
-        // Función para filtrar la tabla al hacer clic en las tarjetas superiores
         function filtrarTabla(estadoFiltro) {
             const filas = document.querySelectorAll('#tabla-trazabilidad tbody tr');
-            
             filas.forEach(fila => {
                 const estadoFila = fila.getAttribute('data-estado');
                 if (estadoFiltro === 'todos' || estadoFila === estadoFiltro) {
