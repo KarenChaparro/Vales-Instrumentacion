@@ -99,7 +99,8 @@
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
         
-        .card { background: white; padding: 18px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .card { background: white; padding: 18px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .card h3 { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .card p { font-size: 28px; font-weight: bold; margin: 0; }
 
@@ -149,12 +150,12 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO -->
+    <!-- METRICAS DE ESTADO (CON CLIC PARA FILTRAR) -->
     <div id="sec_metrics" class="metrics" style="display:none;">
-        <div class="card card-libre"><h3>Disponible</h3><p id="m_libres">0</p></div>
-        <div class="card card-asig"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
-        <div class="card card-usado"><h3>Usados</h3><p id="m_usados">0</p></div>
-        <div class="card card-canc"><h3>Cancelados</h3><p id="m_canc">0</p></div>
+        <div class="card card-libre" onclick="filtrarDesdeTarjeta('libres')"><h3>Disponible</h3><p id="m_libres">0</p></div>
+        <div class="card card-asig" onclick="filtrarDesdeTarjeta('asignados')"><h3>Sin Usar (Asignados)</h3><p id="m_asig">0</p></div>
+        <div class="card card-usado" onclick="filtrarDesdeTarjeta('usados')"><h3>Usados</h3><p id="m_usados">0</p></div>
+        <div class="card card-canc" onclick="filtrarDesdeTarjeta('cancelados')"><h3>Cancelados</h3><p id="m_canc">0</p></div>
     </div>
 
     <!-- SECCION AUTH (LOGIN / REGISTRO) -->
@@ -282,8 +283,8 @@
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
                 </div>
 
-                <!-- CONFIGURACION DE ADMIN -->
-                <div class="panel">
+                <!-- CONFIGURACION DE ADMIN (SOLO VISIBLE PARA INSTRUMENTACIÓN) -->
+                <div class="panel" id="panel_config_admin" style="display:none;">
                     <h2>⚙️ Configuración de Administradora</h2>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
@@ -323,7 +324,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
                         <h2>📊 Control y Trazabilidad</h2>
                         <div style="display:flex; gap:5px; align-items:center;">
-                            <select id="export_filter" style="width:auto; margin:0; padding:6px; font-size:12px;">
+                            <select id="export_filter" style="width:auto; margin:0; padding:6px; font-size:12px;" onchange="renderAdmin()">
                                 <option value="todos">Todos los vales</option>
                                 <option value="usados">Solo vales usados</option>
                                 <option value="libres">Solo vales disponibles</option>
@@ -707,8 +708,16 @@
             }
         }
 
+        // Función para cambiar el filtro del select al hacer clic en las tarjetas de métricas
+        function filtrarDesdeTarjeta(tipoFiltro) {
+            const selectFiltro = document.getElementById("export_filter");
+            if (selectFiltro) {
+                selectFiltro.value = tipoFiltro;
+                renderAdmin();
+            }
+        }
+
         function render() {
-            // Actualización dinámica del título según el departamento activo
             let tituloDinamico = "Asignación de Vales";
             if (currentUser) {
                 tituloDinamico = "Asignación de Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1);
@@ -742,6 +751,14 @@
                     document.getElementById("panel_admin").style.display = "grid";
                     document.getElementById("panel_funcionario").style.display = "none";
                     document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
+                    
+                    // Restricción: Solo el administrador de instrumentación puede cambiar logo y fondo
+                    if (currentUser.dept === "instrumentacion") {
+                        document.getElementById("panel_config_admin").style.display = "block";
+                    } else {
+                        document.getElementById("panel_config_admin").style.display = "none";
+                    }
+
                     renderAdmin();
                 } else {
                     document.getElementById("panel_admin").style.display = "none";
@@ -796,7 +813,20 @@
             const tbodyInv = document.getElementById("tbl_inventario");
             tbodyInv.innerHTML = "";
 
-            vales.filter(v => v.dept === currentUser.dept).forEach(v => {
+            const filtroEstado = document.getElementById("export_filter").value;
+            let valesDept = vales.filter(v => v.dept === currentUser.dept);
+
+            if (filtroEstado === "usados") {
+                valesDept = valesDept.filter(v => v.est === "usado");
+            } else if (filtroEstado === "libres") {
+                valesDept = valesDept.filter(v => v.est === "libre");
+            } else if (filtroEstado === "asignados") {
+                valesDept = valesDept.filter(v => v.est === "obtenido" || v.est === "asignado");
+            } else if (filtroEstado === "cancelados") {
+                valesDept = valesDept.filter(v => v.est === "cancelado");
+            }
+
+            valesDept.forEach(v => {
                 let badgeClass = "badge-libre";
                 if (v.est === "obtenido" || v.est === "asignado") badgeClass = "badge-asig";
                 if (v.est === "usado") badgeClass = "badge-usado";
