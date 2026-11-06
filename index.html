@@ -186,8 +186,8 @@
             <label style="font-size:12px;">Selecciona tu Departamento:</label>
             <select id="l_dept">
                 <option value="instrumentacion">Instrumentación</option>
-                <option value="enfermeria">Enfermería ICV</option>
-                <option value="enfermeria">Enfermería CIE</option>
+                <option value="enfermeria ICV">Enfermería ICV</option>
+                <option value="enfermeria CIE">Enfermería CIE</option>
             </select>
             <label style="font-size:12px;">Número de Cédula:</label>
             <input type="text" id="l_cc" placeholder="Ingresa tu número de cédula">
@@ -203,8 +203,8 @@
             <label style="font-size:12px;">Departamento:</label>
             <select id="r_dept">
                 <option value="instrumentacion">Instrumentación</option>
-               <option value="enfermeria">Enfermería ICV</option>
-                <option value="enfermeria">Enfermería CIE</option>
+                <option value="enfermeria ICV">Enfermería ICV</option>
+                <option value="enfermeria CIE">Enfermería CIE</option>
             </select>
             <label style="font-size:12px;">Nombre Completo:</label>
             <input type="text" id="r_name" placeholder="Ej: Maximiliano Rios">
@@ -347,12 +347,16 @@
     </div>
 
     <script>
-        const ADMIN_ROLES = { "1012426957": "instrumentacion", "1098789395": "enfermeria ICV", , "1095822732": "enfermeria CIE"  };
+        const ADMIN_ROLES = { 
+            "1012426957": "instrumentacion", 
+            "1098789395": "enfermeria ICV", 
+            "1095822732": "enfermeria CIE" 
+        };
         let adminPins = JSON.parse(localStorage.getItem("vi_admin_pins")) || { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
         let vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
         let usuarios = JSON.parse(localStorage.getItem("vi_usuarios")) || [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
-            { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" }
+            { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
             { cc: "1095822732", nombre: "Administradora Enfermería CIE", dept: "enfermeria CIE", rol: "admin" }
         ];
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
@@ -628,25 +632,35 @@
             } else if (pinActual !== null) alert("PIN actual incorrecto.");
         }
 
+        // NUEVA FUNCIÓN MEJORADA CON ALERTA DE VALES REPETIDOS Y FECHA DE REGISTRO
         function agregarValesMasivos() {
             const raw = document.getElementById("add_bulk_input").value.trim();
             if (!raw) return alert("Ingresa vales.");
             
-            let agregados = 0, duplicados = 0;
+            let agregados = 0, repetidos = 0;
             const fechaCargaActual = new Date().toLocaleDateString("es-CO");
             
             raw.split('\n').forEach(line => {
                 const p = line.trim().split(/\s+/);
                 if (p.length >= 2) {
                     const num = p[0].toUpperCase(), fec = p[1];
-                    if (!vales.some(v => v.num === num && v.dept === currentUser.dept)) {
+                    
+                    // Verificamos si el vale ya existe en el departamento
+                    const valeExistente = vales.find(v => v.num === num && v.dept === currentUser.dept);
+                    
+                    if (!valeExistente) {
                         vales.push({ num, fecVenc: fec, dept: currentUser.dept, est: "libre", usrNombre: "", usrCc: "", fechaHora: "", valor: "", motivo: "", fechaCarga: fechaCargaActual, descargadoUsado: false });
                         agregados++;
-                    } else duplicados++;
+                    } else {
+                        repetidos++;
+                        const fechaRegistroAnterior = valeExistente.fechaCarga || "una fecha anterior";
+                        alert(`⚠️ El vale número "${num}" ya fue registrado el día ${fechaRegistroAnterior} y no se volverá a agregar.`);
+                    }
                 }
             });
-            document.getElementById("add_bulk_input").value = ""; saveData();
-            alert(`Carga: ${agregados} agregados, ${duplicados} omitidos (duplicados).`);
+            document.getElementById("add_bulk_input").value = ""; 
+            saveData();
+            alert(`Resumen de carga: ${agregados} agregados con éxito, ${repetidos} repetidos omitidos.`);
         }
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
