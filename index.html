@@ -34,8 +34,8 @@
                 background-size: cover; 
             }
             .logo-preview {
-                max-height: 70px;
-                max-width: 90px;
+                max-height: 55px; /* Tamaño equilibrado para móviles */
+                max-width: 70px;
             }
             #header_user_info {
                 width: auto;
@@ -57,13 +57,14 @@
 
         .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
+        /* LOGO A TAMAÑO IDEAL (Punto medio: ni muy grande ni muy pequeño) */
         .logo-preview { 
-            max-height: 110px;  
-            max-width: 140px;   
+            max-height: 80px;  
+            max-width: 100px;   
             width: auto;
             height: auto;
             object-fit: contain; 
-            border-radius: 10px; 
+            border-radius: 8px; 
             display: none; 
             background: white;
             padding: 3px;
@@ -294,7 +295,7 @@
                         <div id="box_admin_images" style="display:none; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-top:5px;">
                             <p style="font-size:13px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:8px;">🛠️ Panel Exclusivo: Configurar Imágenes Institucionales</p>
                             
-                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo / Perfil (Grande):</label>
+                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo / Perfil:</label>
                             <input type="file" id="input_logo_file" accept="image/*" style="margin:4px 0 4px 0; font-size:12px;" onchange="subirImagenPersonalizada('logo')">
                             <button onclick="eliminarImagenPersonalizada('logo')" class="btn-danger" style="margin:0 0 10px 0; padding:6px; font-size:12px;">🗑️ Eliminar Logo Actual</button>
 
@@ -420,7 +421,6 @@
                 img.src = savedLogo;
                 img.style.display = "block";
             } else {
-                // Si no hay logo personalizado, usa el logo por defecto
                 img.src = "https://i.ibb.co/60qfYK9w/logo.jpg";
                 img.style.display = "block";
             }
@@ -430,7 +430,6 @@
             if (savedBg) {
                 header.style.backgroundImage = `url(${savedBg})`;
             } else {
-                // Si no hay fondo personalizado, usa el fondo por defecto
                 header.style.backgroundImage = `url('https://i.ibb.co/zHxTG2jk/fondo.jpg')`;
             }
             document.getElementById("header_overlay").style.display = "block";
@@ -462,7 +461,6 @@
             }
         }
 
-        // NUEVA FUNCIÓN: Permite eliminar la imagen personalizada y volver a la por defecto
         function eliminarImagenPersonalizada(tipo) {
             if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
                 alert("⛔ Acceso denegado.");
