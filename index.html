@@ -356,6 +356,7 @@
         
         let adminPins = { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
         let vales = [];
+        let papeleraLibres = []; // Memoria temporal local para restaurar vales libres eliminados por error
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
             { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
@@ -529,14 +530,17 @@
                         <title>${titulo}</title>
                         <style>
                             body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
-                            .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+                            .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto; }
                             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+                            .btn-danger-all { background: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-bottom: 10px; }
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
+                            .papelera-box { margin-top: 30px; background: #fff1f2; border: 1px dashed #f43f5e; padding: 15px; border-radius: 10px; }
+                            .papelera-box h3 { color: #be123c; margin-top: 0; font-size: 16px; }
                         </style>
                     </head>
                     <body>
@@ -545,25 +549,50 @@
                                 <h1>${titulo} (<span id="contador_libres">${datosMostrar.length}</span>)</h1>
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                             </div>
+                            
+                            ${esAdmin ? '<button class="btn-danger-all" onclick="eliminarTodosLibresVentana()">🗑️ Eliminar todos los vales libres</button>' : ''}
+                            
                             <input type="text" id="filtro_libres" placeholder="🔍 Buscar por número de vale..." onkeyup="filtrarLibres()">
+                            
                             <table>
                                <thead>
-                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Fecha Carga</th><th>Vencimiento</th></tr>
+                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Fecha Carga</th><th>Vencimiento</th> ${esAdmin ? '<th>Acción</th>' : ''}</tr>
                                 </thead>
                                 <tbody id="tabla_libres_body">
-                                    ${datosMostrar.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>' : ''}
+                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>' : ''}
                                     ${datosMostrar.map(v => `
-                                        <tr class="fila-vale">
+                                        <tr class="fila-vale" data-num="${v.num}">
                                             <td><strong>${v.num}</strong></td>
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
                                             <td>${v.fechaCarga || '---'}</td>
                                             <td>${v.fecVenc || '---'}</td>
+                                            ${esAdmin ? '<td><button onclick="eliminarValeIndividualVentana(\''+v.num+'\')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>' : ''}
                                         </tr>
                                     `).join('')}
                                 </tbody>
                             </table>
+
+                            ${esAdmin ? `
+                                <div class="papelera-box">
+                                    <h3>🗑️ Papelera de Vales Libres Eliminados (<span id="contador_papelera">0</span>)</h3>
+                                    <p style="font-size:12px; color:#881337; margin-bottom:10px;">Si borraste un vale por equivocación, puedes restaurarlo aquí instantáneamente:</p>
+                                    <table>
+                                        <thead>
+                                            <tr><th>Nº de Vale</th><th>Vencimiento</th><th>Acción</th></tr>
+                                        </thead>
+                                        <tbody id="tabla_papelera_body">
+                                            <tr><td colspan="3" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ` : ''}
                         </div>
+                        
                         <script>
+                            // Sincronizar con la ventana principal
+                            let valesLocales = JSON.parse(localStorage.getItem("vi_vales")) || [];
+                            let papeleraLocal = [];
+
                             function filtrarLibres() {
                                 const texto = document.getElementById("filtro_libres").value.toLowerCase();
                                 const filas = document.querySelectorAll(".fila-vale");
@@ -578,6 +607,76 @@
                                     }
                                 });
                                 document.getElementById("contador_libres").innerText = visibles;
+                            }
+
+                            function eliminarValeIndividualVentana(num) {
+                                if(confirm("¿Estás segura de enviar el vale " + num + " a la papelera?")) {
+                                    let idx = valesLocales.findIndex(v => v.num === num && v.dept === '${currentUser.dept}' && v.est === 'libre');
+                                    if(idx !== -1) {
+                                        let eliminado = valesLocales.splice(idx, 1)[0];
+                                        papeleraLocal.push(eliminado);
+                                        localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
+                                        actualizarVentana();
+                                    }
+                                }
+                            }
+
+                            function eliminarTodosLibresVentana() {
+                                if(confirm("¿Estás segura de eliminar TODOS los vales libres de este departamento? Se moverán a la papelera.")) {
+                                    let resto = valesLocales.filter(v => !(v.dept === '${currentUser.dept}' && v.est === 'libre'));
+                                    let eliminados = valesLocales.filter(v => v.dept === '${currentUser.dept}' && v.est === 'libre');
+                                    
+                                    valesLocales = resto;
+                                    papeleraLocal.push(...eliminados);
+                                    localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
+                                    actualizarVentana();
+                                }
+                            }
+
+                            function restaurarVale(num) {
+                                let idx = papeleraLocal.findIndex(v => v.num === num);
+                                if(idx !== -1) {
+                                    let restaurado = papeleraLocal.splice(idx, 1)[0];
+                                    valesLocales.push(restaurado);
+                                    localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
+                                    actualizarVentana();
+                                }
+                            }
+
+                            function actualizarVentana() {
+                                const deptActual = '${currentUser.dept}';
+                                const libresActuales = valesLocales.filter(v => v.dept === deptActual && v.est === 'libre');
+                                
+                                document.getElementById("contador_libres").innerText = libresActuales.length;
+                                
+                                const tbodyLibres = document.getElementById("tabla_libres_body");
+                                if(libresActuales.length === 0) {
+                                    tbodyLibres.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>';
+                                } else {
+                                    tbodyLibres.innerHTML = libresActuales.map(v => \`
+                                        <tr class="fila-vale" data-num="\${v.num}">
+                                            <td><strong>\${v.num}</strong></td>
+                                            <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
+                                            <td>\${v.fechaCarga || '---'}</td>
+                                            <td>\${v.fecVenc || '---'}</td>
+                                            <td><button onclick="eliminarValeIndividualVentana('\${v.num}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>
+                                        </tr>
+                                    \`).join('');
+                                }
+
+                                const tbodyPapelera = document.getElementById("tabla_papelera_body");
+                                document.getElementById("contador_papelera").innerText = papeleraLocal.length;
+                                if(papeleraLocal.length === 0) {
+                                    tbodyPapelera.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
+                                } else {
+                                    tbodyPapelera.innerHTML = papeleraLocal.map(v => \`
+                                        <tr>
+                                            <td><strong>\${v.num}</strong></td>
+                                            <td>\${v.fecVenc || '---'}</td>
+                                            <td><button onclick="restaurarVale('\${v.num}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
+                                        </tr>
+                                    \`).join('');
+                                }
                             }
                         <\/script>
                     </body>
@@ -904,7 +1003,7 @@
                     const misVales = vd.filter(v => v.usrCc === currentUser.cc);
                     document.getElementById("m_asig").innerText = misVales.length;
                     document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
-                    document.getElementById("m_usados").innerText = misVales.filter(v => v.est === "usado").length;
+                    document.getElementById("m_usados").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "usado").length;
                     document.getElementById("m_canc").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado").length;
                 }
                 
