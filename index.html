@@ -34,8 +34,8 @@
                 background-size: cover; 
             }
             .logo-preview {
-                max-height: 35px; /* Reducido a la mitad para móviles */
-                max-width: 45px;
+                max-height: 70px;
+                max-width: 90px;
             }
             #header_user_info {
                 width: auto;
@@ -57,14 +57,13 @@
 
         .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
-        /* LOGO REDUCIDO A LA MITAD (Anteriormente max-height: 110px / max-width: 140px) */
         .logo-preview { 
-            max-height: 55px;  
-            max-width: 70px;   
+            max-height: 110px;  
+            max-width: 140px;   
             width: auto;
             height: auto;
             object-fit: contain; 
-            border-radius: 8px; 
+            border-radius: 10px; 
             display: none; 
             background: white;
             padding: 3px;
@@ -421,6 +420,7 @@
                 img.src = savedLogo;
                 img.style.display = "block";
             } else {
+                // Si no hay logo personalizado, usa el logo por defecto
                 img.src = "https://i.ibb.co/60qfYK9w/logo.jpg";
                 img.style.display = "block";
             }
@@ -430,6 +430,7 @@
             if (savedBg) {
                 header.style.backgroundImage = `url(${savedBg})`;
             } else {
+                // Si no hay fondo personalizado, usa el fondo por defecto
                 header.style.backgroundImage = `url('https://i.ibb.co/zHxTG2jk/fondo.jpg')`;
             }
             document.getElementById("header_overlay").style.display = "block";
@@ -461,6 +462,7 @@
             }
         }
 
+        // NUEVA FUNCIÓN: Permite eliminar la imagen personalizada y volver a la por defecto
         function eliminarImagenPersonalizada(tipo) {
             if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
                 alert("⛔ Acceso denegado.");
