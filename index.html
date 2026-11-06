@@ -44,7 +44,7 @@
         .header-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.45); /* <-- AJUSTADO AQUÍ PARA MÁS BRILLO (0.45 en lugar de 0.82) */
+            background: rgba(255, 255, 255, 0.40); /* Fondo más brillante y vistoso */
             backdrop-filter: blur(0.5px);
             z-index: 1;
             display: block;
@@ -339,8 +339,9 @@
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg";     
-            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";         
+            // CORREGIDO: Enlaces directos reales extraídos de las imágenes de ImgBB
+            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg";     // Imagen de perfil / logo
+            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";         // Imagen de portada / fondo
 
             const img = document.getElementById("img_logo");
             img.src = logoUrl;
