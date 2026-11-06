@@ -356,7 +356,6 @@
         
         let adminPins = { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
         let vales = [];
-        let papeleraLibres = []; // Memoria temporal local para restaurar vales libres eliminados por error
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
             { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
@@ -550,7 +549,7 @@
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                             </div>
                             
-                            ${esAdmin ? '<button class="btn-danger-all" onclick="eliminarTodosLibresVentana()">🗑️ Eliminar todos los vales libres</button>' : ''}
+                            ${esAdmin ? '<button class="btn-danger-all" onclick="window.opener.eliminarTodosLibresGlobal(); actualizarVentanaPapelera();">🗑️ Eliminar todos los vales libres</button>' : ''}
                             
                             <input type="text" id="filtro_libres" placeholder="🔍 Buscar por número de vale..." onkeyup="filtrarLibres()">
                             
@@ -566,7 +565,7 @@
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
                                             <td>${v.fechaCarga || '---'}</td>
                                             <td>${v.fecVenc || '---'}</td>
-                                            ${esAdmin ? '<td><button onclick="eliminarValeIndividualVentana(\''+v.num+'\')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>' : ''}
+                                            ${esAdmin ? '<td><button onclick="window.opener.eliminarValeLibreGlobal(\''+v.num+'\'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>' : ''}
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -589,10 +588,6 @@
                         </div>
                         
                         <script>
-                            // Sincronizar con la ventana principal
-                            let valesLocales = JSON.parse(localStorage.getItem("vi_vales")) || [];
-                            let papeleraLocal = [];
-
                             function filtrarLibres() {
                                 const texto = document.getElementById("filtro_libres").value.toLowerCase();
                                 const filas = document.querySelectorAll(".fila-vale");
@@ -609,71 +604,36 @@
                                 document.getElementById("contador_libres").innerText = visibles;
                             }
 
-                            function eliminarValeIndividualVentana(num) {
-                                if(confirm("¿Estás segura de enviar el vale " + num + " a la papelera?")) {
-                                    let idx = valesLocales.findIndex(v => v.num === num && v.dept === '${currentUser.dept}' && v.est === 'libre');
-                                    if(idx !== -1) {
-                                        let eliminado = valesLocales.splice(idx, 1)[0];
-                                        papeleraLocal.push(eliminado);
-                                        localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
-                                        actualizarVentana();
-                                    }
-                                }
-                            }
-
-                            function eliminarTodosLibresVentana() {
-                                if(confirm("¿Estás segura de eliminar TODOS los vales libres de este departamento? Se moverán a la papelera.")) {
-                                    let resto = valesLocales.filter(v => !(v.dept === '${currentUser.dept}' && v.est === 'libre'));
-                                    let eliminados = valesLocales.filter(v => v.dept === '${currentUser.dept}' && v.est === 'libre');
-                                    
-                                    valesLocales = resto;
-                                    papeleraLocal.push(...eliminados);
-                                    localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
-                                    actualizarVentana();
-                                }
-                            }
-
-                            function restaurarVale(num) {
-                                let idx = papeleraLocal.findIndex(v => v.num === num);
-                                if(idx !== -1) {
-                                    let restaurado = papeleraLocal.splice(idx, 1)[0];
-                                    valesLocales.push(restaurado);
-                                    localStorage.setItem("vi_vales", JSON.stringify(valesLocales));
-                                    actualizarVentana();
-                                }
-                            }
-
-                            function actualizarVentana() {
-                                const deptActual = '${currentUser.dept}';
-                                const libresActuales = valesLocales.filter(v => v.dept === deptActual && v.est === 'libre');
-                                
-                                document.getElementById("contador_libres").innerText = libresActuales.length;
+                            function actualizarVentanaPapelera() {
+                                const valesActuales = window.opener.vales.filter(v => v.dept === '${currentUser.dept}' && v.est === 'libre');
+                                document.getElementById("contador_libres").innerText = valesActuales.length;
                                 
                                 const tbodyLibres = document.getElementById("tabla_libres_body");
-                                if(libresActuales.length === 0) {
+                                if(valesActuales.length === 0) {
                                     tbodyLibres.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>';
                                 } else {
-                                    tbodyLibres.innerHTML = libresActuales.map(v => \`
+                                    tbodyLibres.innerHTML = valesActuales.map(v => \`
                                         <tr class="fila-vale" data-num="\${v.num}">
                                             <td><strong>\${v.num}</strong></td>
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
                                             <td>\${v.fechaCarga || '---'}</td>
                                             <td>\${v.fecVenc || '---'}</td>
-                                            <td><button onclick="eliminarValeIndividualVentana('\${v.num}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>
+                                            <td><button onclick="window.opener.eliminarValeLibreGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>
                                         </tr>
                                     \`).join('');
                                 }
 
+                                const papeleraActual = window.opener.papeleraLibres || [];
+                                document.getElementById("contador_papelera").innerText = papeleraActual.length;
                                 const tbodyPapelera = document.getElementById("tabla_papelera_body");
-                                document.getElementById("contador_papelera").innerText = papeleraLocal.length;
-                                if(papeleraLocal.length === 0) {
+                                if(papeleraActual.length === 0) {
                                     tbodyPapelera.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
                                 } else {
-                                    tbodyPapelera.innerHTML = papeleraLocal.map(v => \`
+                                    tbodyPapelera.innerHTML = papeleraActual.map(v => \`
                                         <tr>
                                             <td><strong>\${v.num}</strong></td>
                                             <td>\${v.fecVenc || '---'}</td>
-                                            <td><button onclick="restaurarVale('\${v.num}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
+                                            <td><button onclick="window.opener.restaurarValeGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
                                         </tr>
                                     \`).join('');
                                 }
@@ -767,6 +727,40 @@
                 `);
             }
             nuevaVentana.document.close();
+        }
+
+        // FUNCIONES GLOBALES DE PAPELERA Y ELIMINACIÓN PARA LA VENTANA PRINCIPAL
+        let papeleraLibres = [];
+
+        function eliminarValeLibreGlobal(num) {
+            if(confirm("¿Estás segura de enviar el vale " + num + " a la papelera?")) {
+                let idx = vales.findIndex(v => v.num === num && v.dept === currentUser.dept && v.est === 'libre');
+                if(idx !== -1) {
+                    let eliminado = vales.splice(idx, 1)[0];
+                    papeleraLibres.push(eliminado);
+                    saveData();
+                }
+            }
+        }
+
+        function eliminarTodosLibresGlobal() {
+            if(confirm("¿Estás segura de eliminar TODOS los vales libres de este departamento? Se moverán a la papelera.")) {
+                let resto = vales.filter(v => !(v.dept === currentUser.dept && v.est === 'libre'));
+                let eliminados = vales.filter(v => v.dept === currentUser.dept && v.est === 'libre');
+                
+                vales = resto;
+                papeleraLibres.push(...eliminados);
+                saveData();
+            }
+        }
+
+        function restaurarValeGlobal(num) {
+            let idx = papeleraLibres.findIndex(v => v.num === num);
+            if(idx !== -1) {
+                let restaurado = papeleraLibres.splice(idx, 1)[0];
+                vales.push(restaurado);
+                saveData();
+            }
         }
 
         function switchAuthTab(tab) {
