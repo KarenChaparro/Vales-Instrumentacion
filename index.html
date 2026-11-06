@@ -44,10 +44,10 @@
         .header-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(1px);
+            background: rgba(255, 255, 255, 0.45); /* <-- AJUSTADO AQUÍ PARA MÁS BRILLO (0.45 en lugar de 0.82) */
+            backdrop-filter: blur(0.5px);
             z-index: 1;
-            display: block; /* Mantiene la capa clara para que los textos se lean bien sobre el fondo */
+            display: block;
         }
 
         .logo-container { display: flex; align-items: center; gap: 15px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
@@ -59,12 +59,12 @@
             height: auto;
             object-fit: contain; 
             border-radius: 8px; 
-            display: block; /* Siempre visible con tu imagen asignada */
+            display: block; 
         }
         
         .header-title-box { flex-grow: 1; }
-        .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; }
-        .header-title-box p { font-size: 12px; font-weight: 500; color: #64748b; margin: 4px 0 0 0; }
+        .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+        .header-title-box p { font-size: 12px; font-weight: 600; color: #334155; margin: 4px 0 0 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
 
         #header_user_info { z-index: 2; position: relative; }
 
@@ -84,7 +84,7 @@
         .btn-danger { background: #ef4444; } .btn-danger:hover { background: #dc2626; }
         .btn-neutral { background: #64748b; } .btn-neutral:hover { background: #475569; }
 
-        .btn-img-logo, .btn-img-bg, .btn-pin-style { 
+        .btn-pin-style { 
             background: #8b1a2b; 
             color: white; 
             border-left: 5px solid #5d111d; 
@@ -98,7 +98,7 @@
             display: block; 
             transition: all 0.2s;
         }
-        .btn-img-logo:hover, .btn-img-bg:hover, .btn-pin-style:hover { background: #6e1422; }
+        .btn-pin-style:hover { background: #6e1422; }
 
         .dept-tag { font-size: 12px; font-weight: bold; padding: 6px 12px; background: #8b1a2b; color: #ffffff; border-radius: 6px; }
 
@@ -339,9 +339,8 @@
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            // IMÁGENES FIJAS INTEGRADAS DIRECTAMENTE (Cargan perfecto en celulares y PC)
-            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg"; // (Tu imagen de perfil/logo)
-            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";     // (Tu imagen de portada/fondo)
+            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg";     
+            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";         
 
             const img = document.getElementById("img_logo");
             img.src = logoUrl;
