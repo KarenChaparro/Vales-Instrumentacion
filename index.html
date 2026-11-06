@@ -47,7 +47,7 @@
             background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(1px);
             z-index: 1;
-            display: none;
+            display: block; /* Mantiene la capa clara para que los textos se lean bien sobre el fondo */
         }
 
         .logo-container { display: flex; align-items: center; gap: 15px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
@@ -59,7 +59,7 @@
             height: auto;
             object-fit: contain; 
             border-radius: 8px; 
-            display: none; 
+            display: block; /* Siempre visible con tu imagen asignada */
         }
         
         .header-title-box { flex-grow: 1; }
@@ -119,7 +119,6 @@
         .vale-box { background: #0f172a; color: #38bdf8; font-size: 24px; text-align: center; padding: 15px; font-family: monospace; font-weight: bold; border-radius: 10px; margin: 15px 0; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .btn-copy { background: #334155; color: white; font-size: 13px; padding: 8px 16px; width: auto; margin: 0; border-radius: 6px; }
 
-        /* CONTENEDOR DE TABLAS CON SCROLL EN MÓVILES */
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; min-width: 480px; }
         th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -283,18 +282,8 @@
                 <!-- CONFIGURACION DE ADMIN -->
                 <div class="panel" id="panel_config_admin">
                     <h2>⚙️ Configuración de Administradora</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
-                        <label class="btn-img-logo" id="box_btn_logo" style="display:none;">
-                            🖼️ Cambiar Logo
-                            <input type="file" id="input_logo" accept="image/*" style="display:none;">
-                        </label>
-                    </div>
-                    <div style="margin-top:10px;" id="box_btn_bg_container">
-                        <label class="btn-img-bg" id="box_btn_bg" style="display:none;">
-                            🏞️ Cambiar Fondo Encabezado
-                            <input type="file" id="input_bg" accept="image/*" style="display:none;">
-                        </label>
                     </div>
                 </div>
 
@@ -350,13 +339,17 @@
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            const savedLogo = localStorage.getItem("vi_logo");
-            if (savedLogo) { const img = document.getElementById("img_logo"); img.src = savedLogo; img.style.display = "block"; }
-            const savedBg = localStorage.getItem("vi_bg");
-            if (savedBg) {
-                document.getElementById("main_header").style.backgroundImage = `url(${savedBg})`;
-                document.getElementById("header_overlay").style.display = "block";
-            }
+            // IMÁGENES FIJAS INTEGRADAS DIRECTAMENTE (Cargan perfecto en celulares y PC)
+            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg"; // (Tu imagen de perfil/logo)
+            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";     // (Tu imagen de portada/fondo)
+
+            const img = document.getElementById("img_logo");
+            img.src = logoUrl;
+            img.style.display = "block";
+
+            document.getElementById("main_header").style.backgroundImage = `url(${bgUrl})`;
+            document.getElementById("header_overlay").style.display = "block";
+
             document.getElementById("l_cc").addEventListener("input", function() {
                 document.getElementById("box_pin_admin").style.display = ADMIN_ROLES[this.value.trim()] ? "block" : "none";
             });
@@ -368,7 +361,6 @@
             render();
         }
 
-        // --- FUNCIÓN PRINCIPAL: ABRIR PESTAÑA NUEVA ---
         function abrirPestanaDetalle(tipo) {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             let titulo = "Detalles de Vales";
@@ -392,7 +384,6 @@
                     datosMostrar = valesDept.filter(v => v.est === "cancelado");
                 }
             } else {
-                // VISTA PARA FUNCIONARIO COMÚN
                 if (tipo === 'libres') {
                     alert(`Hay ${valesDept.filter(v => v.est === "libre").length} vales disponibles en total en tu departamento. Para obtener uno, utiliza el botón principal "Obtener Vale Libre".`);
                     return; 
@@ -519,30 +510,6 @@
             `);
             nuevaVentana.document.close();
         }
-
-        document.getElementById("input_logo").onchange = function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const img = document.getElementById("img_logo");
-                    img.src = ev.target.result; img.style.display = "block";
-                    localStorage.setItem("vi_logo", ev.target.result);
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        };
-
-        document.getElementById("input_bg").onchange = function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    document.getElementById("main_header").style.backgroundImage = `url(${ev.target.result})`;
-                    document.getElementById("header_overlay").style.display = "block";
-                    localStorage.setItem("vi_bg", ev.target.result);
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        };
 
         function saveData() {
             localStorage.setItem("vi_vales", JSON.stringify(vales));
@@ -748,11 +715,6 @@
                     document.getElementById("panel_admin").style.display = "grid"; 
                     document.getElementById("panel_funcionario").style.display = "none"; 
                     document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
-                    
-                    const esInst = (currentUser.dept === "instrumentacion");
-                    document.getElementById("box_btn_logo").style.display = esInst ? "block" : "none";
-                    document.getElementById("box_btn_bg").style.display = esInst ? "block" : "none";
-
                     renderAdmin();
                 } else {
                     document.getElementById("panel_admin").style.display = "none"; document.getElementById("panel_funcionario").style.display = "block"; document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
