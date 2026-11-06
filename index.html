@@ -8,10 +8,10 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
         
-        /* ENCABEZADO ADAPTATIVO */
+        /* ENCABEZADO ADAPTATIVO CON IMAGEN COMPLETA (SIN ZOOM/CORTES) */
         header { 
             background: #ffffff; 
-            background-size: cover; 
+            background-size: contain; /* Muestra la imagen completa sin recortarla */
             background-position: center; 
             background-repeat: no-repeat;
             position: relative;
@@ -23,7 +23,7 @@
             margin-bottom: 20px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
             overflow: hidden;
-            min-height: 140px;
+            min-height: 150px;
         }
 
         @media (max-width: 768px) {
@@ -32,6 +32,7 @@
                 align-items: flex-start; 
                 gap: 15px;
                 padding: 15px;
+                background-size: cover; /* En celulares ajusta mejor al ancho */
             }
             #header_user_info {
                 width: 100%;
@@ -44,25 +45,26 @@
         .header-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.40); /* Fondo brillante para que la imagen se vea nítida */
+            background: rgba(255, 255, 255, 0.40); 
             backdrop-filter: blur(0.5px);
             z-index: 1;
             display: block;
         }
 
-        .logo-container { display: flex; align-items: center; gap: 15px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
+        .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
+        /* LOGO / PERFIL AMPLIADO */
         .logo-preview { 
-            max-height: 80px; 
-            max-width: 100px; 
+            max-height: 110px;  /* Altura aumentada */
+            max-width: 140px;   /* Ancho aumentado */
             width: auto;
             height: auto;
             object-fit: contain; 
-            border-radius: 8px; 
+            border-radius: 10px; 
             display: none; 
             background: white;
-            padding: 2px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            padding: 3px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
         
         .header-title-box { flex-grow: 1; }
@@ -282,19 +284,20 @@
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
                 </div>
 
-                <!-- CONFIGURACION DE ADMIN CON BOTONES PARA CAMBIAR IMÁGENES -->
+                <!-- CONFIGURACIÓN DE ADMIN (SOLO VISIBLE PARA INSTRUMENTACIÓN) -->
                 <div class="panel" id="panel_config_admin">
-                    <h2>⚙️ Configuración de Imágenes y PIN</h2>
+                    <h2>⚙️ Configuración y Seguridad</h2>
                     <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
                         
-                        <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
-                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo Pequeño:</label>
+                        <!-- SECCIÓN DE CAMBIO DE IMÁGENES EXCLUSIVA PARA ADMIN INSTRUMENTACIÓN -->
+                        <div id="box_admin_images" style="display:none; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-top:5px;">
+                            <p style="font-size:13px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:8px;">🛠️ Panel Exclusivo: Configurar Imágenes Institucionales</p>
+                            
+                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo / Perfil (Grande):</label>
                             <input type="file" id="input_logo_file" accept="image/*" style="margin:4px 0 8px 0; font-size:12px;" onchange="subirImagenPersonalizada('logo')">
-                        </div>
 
-                        <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
-                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🌄 Cambiar Imagen de Fondo (Portada):</label>
+                            <label style="font-size:12px; font-weight:bold; color:#0f172a;">🌄 Cambiar Fondo de Portada:</label>
                             <input type="file" id="input_bg_file" accept="image/*" style="margin:4px 0 8px 0; font-size:12px;" onchange="subirImagenPersonalizada('bg')">
                         </div>
                     </div>
@@ -351,7 +354,6 @@
         ];
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
-        // CARGAR IMÁGENES GUARDADAS EN EL NAVEGADOR O USAR PREDETERMINADAS LIGERAS
         document.addEventListener("DOMContentLoaded", () => {
             aplicarImagenesPersonalizadas();
             document.getElementById("l_cc").addEventListener("input", function() {
@@ -361,19 +363,18 @@
         });
 
         function aplicarImagenesPersonalizadas() {
-            // Logo guardado o por defecto
+            // Logo / Perfil
             const savedLogo = localStorage.getItem("vi_custom_logo");
             const img = document.getElementById("img_logo");
             if (savedLogo) {
                 img.src = savedLogo;
                 img.style.display = "block";
             } else {
-                // Imagen por defecto pequeña optimizada
                 img.src = "https://i.ibb.co/60qfYK9w/logo.jpg";
                 img.style.display = "block";
             }
 
-            // Fondo guardado o por defecto
+            // Fondo de Portada
             const savedBg = localStorage.getItem("vi_custom_bg");
             const header = document.getElementById("main_header");
             if (savedBg) {
@@ -385,6 +386,12 @@
         }
 
         function subirImagenPersonalizada(tipo) {
+            // SEGURIDAD EXTRA: Validar que sea estrictamente la admin de instrumentación (Cédula 1012426957)
+            if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
+                alert("⛔ Acceso denegado. Solo la Administradora de Instrumentación puede modificar las imágenes institucionales.");
+                return;
+            }
+
             const inputId = tipo === 'logo' ? 'input_logo_file' : 'input_bg_file';
             const fileInput = document.getElementById(inputId);
             
@@ -394,10 +401,10 @@
                     const base64Image = e.target.result;
                     if (tipo === 'logo') {
                         localStorage.setItem("vi_custom_logo", base64Image);
-                        alert("✅ ¡Logo actualizado y guardado para todos los dispositivos!");
+                        alert("✅ ¡Logo / Perfil actualizado con éxito para todos los dispositivos!");
                     } else {
                         localStorage.setItem("vi_custom_bg", base64Image);
-                        alert("✅ ¡Fondo de portada actualizado y guardado para todos los dispositivos!");
+                        alert("✅ ¡Fondo de portada actualizado con éxito para todos los dispositivos!");
                     }
                     aplicarImagenesPersonalizadas();
                 };
@@ -649,7 +656,7 @@
         }
 
         function obtenerValeLibre() {
-            if (vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"))) return alert("Yoga tienes un vale activo.");
+            if (vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"))) return alert("Ya tienes un vale activo.");
             const libre = vales.find(v => v.est === "libre" && v.dept === currentUser.dept);
             if (!libre) return alert("No hay vales libres.");
             libre.est = "obtenido"; libre.usrNombre = currentUser.nombre; libre.usrCc = currentUser.cc; saveData();
@@ -741,6 +748,13 @@
                 document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
                 const vd = vales.filter(v => v.dept === currentUser.dept);
                 
+                // MOSTRAR U OCULTAR SECCIÓN DE CAMBIO DE IMÁGENES SEGÚN SEA EXCLUSIVAMENTE ADMIN DE INSTRUMENTACIÓN (Cédula 1012426957)
+                if (currentUser.rol === "admin" && currentUser.dept === "instrumentacion" && currentUser.cc === "1012426957") {
+                    document.getElementById("box_admin_images").style.display = "block";
+                } else {
+                    document.getElementById("box_admin_images").style.display = "none";
+                }
+
                 if (currentUser.rol === "admin") {
                     document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
                     const asignadosTotal = vd.filter(v => v.est !== "libre");
