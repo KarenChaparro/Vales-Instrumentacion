@@ -351,13 +351,13 @@
             "1098789395": "enfermeria ICV/CIE", 
         };
 
-        let adminPins = { "1012426957": "1234", "1098789395": "1234"  };
+        let adminPins = { "1012426957": "1234", "1098789395": "1234" };
         let vales = [];
         let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
 
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
-            { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV/CIE", rol: "admin" },
+            { cc: "1098789395", nombre: "Administradora Enfermería ICV/CIE", dept: "enfermeria ICV/CIE", rol: "admin" },
         ];
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
