@@ -7,9 +7,10 @@
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
+        
         header { 
            background: #ffffff; 
-            background-size: cover; /* Cambiado de 100% a cover para mantener proporción en PC */
+            background-size: cover; 
             background-position: center; 
             background-repeat: no-repeat;
             position: relative;
@@ -26,14 +27,14 @@
 
         @media (max-width: 768px) {
             header { 
-                flex-direction: row; /* Mantiene los elementos alineados horizontalmente en móvil si el espacio lo permite */
+                flex-direction: row; 
                 align-items: center; 
                 gap: 10px;
                 padding: 15px;
                 background-size: cover; 
             }
             .logo-preview {
-                max-height: 70px; /* Reduce un poco el logo en móviles para que no sature la pantalla */
+                max-height: 70px;
                 max-width: 90px;
             }
             #header_user_info {
@@ -43,6 +44,30 @@
                 padding-top: 0;
                 font-size: 11px;
             }
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.40); 
+            backdrop-filter: blur(0.5px);
+            z-index: 1;
+            display: block;
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
+        
+        .logo-preview { 
+            max-height: 110px;  
+            max-width: 140px;   
+            width: auto;
+            height: auto;
+            object-fit: contain; 
+            border-radius: 10px; 
+            display: none; 
+            background: white;
+            padding: 3px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
         
         .header-title-box { flex-grow: 1; }
@@ -270,10 +295,12 @@
                             <p style="font-size:13px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:8px;">🛠️ Panel Exclusivo: Configurar Imágenes Institucionales</p>
                             
                             <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo / Perfil (Grande):</label>
-                            <input type="file" id="input_logo_file" accept="image/*" style="margin:4px 0 8px 0; font-size:12px;" onchange="subirImagenPersonalizada('logo')">
+                            <input type="file" id="input_logo_file" accept="image/*" style="margin:4px 0 4px 0; font-size:12px;" onchange="subirImagenPersonalizada('logo')">
+                            <button onclick="eliminarImagenPersonalizada('logo')" class="btn-danger" style="margin:0 0 10px 0; padding:6px; font-size:12px;">🗑️ Eliminar Logo Actual</button>
 
                             <label style="font-size:12px; font-weight:bold; color:#0f172a;">🌄 Cambiar Fondo de Portada:</label>
-                            <input type="file" id="input_bg_file" accept="image/*" style="margin:4px 0 8px 0; font-size:12px;" onchange="subirImagenPersonalizada('bg')">
+                            <input type="file" id="input_bg_file" accept="image/*" style="margin:4px 0 4px 0; font-size:12px;" onchange="subirImagenPersonalizada('bg')">
+                            <button onclick="eliminarImagenPersonalizada('bg')" class="btn-danger" style="margin:0 0 4px 0; padding:6px; font-size:12px;">🗑️ Eliminar Fondo Actual</button>
                         </div>
                     </div>
                 </div>
@@ -393,6 +420,7 @@
                 img.src = savedLogo;
                 img.style.display = "block";
             } else {
+                // Si no hay logo personalizado, usa el logo por defecto
                 img.src = "https://i.ibb.co/60qfYK9w/logo.jpg";
                 img.style.display = "block";
             }
@@ -402,6 +430,7 @@
             if (savedBg) {
                 header.style.backgroundImage = `url(${savedBg})`;
             } else {
+                // Si no hay fondo personalizado, usa el fondo por defecto
                 header.style.backgroundImage = `url('https://i.ibb.co/zHxTG2jk/fondo.jpg')`;
             }
             document.getElementById("header_overlay").style.display = "block";
@@ -433,8 +462,27 @@
             }
         }
 
-        function recargarDatosDesdeHijo() {
-            cargarDatosNube();
+        // NUEVA FUNCIÓN: Permite eliminar la imagen personalizada y volver a la por defecto
+        function eliminarImagenPersonalizada(tipo) {
+            if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
+                alert("⛔ Acceso denegado.");
+                return;
+            }
+
+            if (tipo === 'logo') {
+                if (confirm("¿Estás segura de eliminar el logo personalizado y volver al predeterminado?")) {
+                    localStorage.removeItem("vi_custom_logo");
+                    document.getElementById("input_logo_file").value = "";
+                    alert("🗑️ Logo eliminado con éxito.");
+                }
+            } else {
+                if (confirm("¿Estás segura de eliminar el fondo de portada personalizado y volver al predeterminado?")) {
+                    localStorage.removeItem("vi_custom_bg");
+                    document.getElementById("input_bg_file").value = "";
+                    alert("🗑️ Fondo eliminado con éxito.");
+                }
+            }
+            aplicarImagenesPersonalizadas();
         }
 
         function abrirPestanaDetalle(tipo) {
@@ -624,7 +672,6 @@
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
 
-        // FUNCIÓN PARA QUE EL ADMIN PUEDA DEVOLVER UN VALE CANCELADO A ESTADO LIBRE MANUALMENTE
         function hacerValeLibre(num) {
             if (confirm(`¿Estás seguro de devolver el vale ${num} al estado disponible (libre)?`)) {
                 const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
@@ -743,10 +790,8 @@
             vd.forEach(v => {
                 let badge = "badge-libre"; if(v.est === "obtenido"||v.est === "asignado") badge="badge-asig"; else if(v.est==="usado") badge="badge-usado"; else if(v.est==="cancelado") badge="badge-canc";
                 
-                // Botón de eliminar por defecto
                 let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
                 
-                // CORRECCIÓN: El botón "Liberar" ahora sale EXCLUSIVAMENTE cuando el vale está cancelado
                 if (v.est === "cancelado") {
                     botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
                 }
