@@ -550,7 +550,7 @@
                             if(!esAdmin || datosExcel.length === 0) return;
                             let csv = tipoVista === 'libres' ? "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento\\n" : "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\\n";
                             datosExcel.forEach(v => {
-                                if(tipoVista === 'libres') csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'"\\n';
+                                if(tipoVista === 'libres') csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'\\n';
                                 else csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'","'+(v.usrNombre||'')+'","'+(v.usrCc||'')+'","'+(v.fechaHora||'')+'","'+(v.valor||'')+'","'+(v.motivo||'')+'"\\n';
                             });
                             const blob = new Blob(["\\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
@@ -644,7 +644,7 @@
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
 
-        // FUNCIÓN PARA QUE EL ADMIN PUEDA DEVOLVER UN VALE A ESTADO LIBRE MANUALMENTE
+        // FUNCIÓN PARA QUE EL ADMIN PUEDA DEVOLVER UN VALE CANCELADO A ESTADO LIBRE MANUALMENTE
         function hacerValeLibre(num) {
             if (confirm(`¿Estás seguro de devolver el vale ${num} al estado disponible (libre)?`)) {
                 const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
@@ -706,8 +706,6 @@
                 v.motivo = motivoSeleccionado;
                 v.fechaHora = new Date().toLocaleString("es-CO");
 
-                // REGLA: Si es "Vale inactivo", se queda cancelado/bloqueado. 
-                // Si es cualquier otra razón, el vale se libera automáticamente para otro usuario.
                 if (motivoSeleccionado === "Vale inactivo") {
                     v.est = "cancelado";
                     alert("Vale marcado como inactivo/rechazado. Queda fuera de circulación.");
@@ -765,9 +763,11 @@
             vd.forEach(v => {
                 let badge = "badge-libre"; if(v.est === "obtenido"||v.est === "asignado") badge="badge-asig"; else if(v.est==="usado") badge="badge-usado"; else if(v.est==="cancelado") badge="badge-canc";
                 
-                // Botones de acción para el administrador en la tabla de inventario
+                // Botón de eliminar por defecto
                 let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
-                if (v.est === "cancelado" || v.est === "usado") {
+                
+                // CORRECCIÓN: El botón "Liberar" ahora sale EXCLUSIVAMENTE cuando el vale está cancelado
+                if (v.est === "cancelado") {
                     botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
                 }
 
