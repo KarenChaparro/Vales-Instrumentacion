@@ -8,7 +8,6 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
         
-        /* ENCABEZADO ADAPTATIVO CON IMAGEN COMPLETA (SIN ZOOM/CORTES) */
         header { 
            background: #ffffff; 
             background-size: 100% 100%; 
@@ -32,7 +31,7 @@
                 align-items: flex-start; 
                 gap: 15px;
                 padding: 15px;
-                background-size: cover; /* En celulares ajusta mejor al ancho */
+                background-size: cover; 
             }
             #header_user_info {
                 width: 100%;
@@ -53,10 +52,9 @@
 
         .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
-        /* LOGO / PERFIL AMPLIADO */
         .logo-preview { 
-            max-height: 110px;  /* Altura aumentada */
-            max-width: 140px;   /* Ancho aumentado */
+            max-height: 110px;  
+            max-width: 140px;   
             width: auto;
             height: auto;
             object-fit: contain; 
@@ -107,7 +105,6 @@
 
         .dept-tag { font-size: 12px; font-weight: bold; padding: 6px 12px; background: #8b1a2b; color: #ffffff; border-radius: 6px; }
 
-        /* RECUADROS DE METRICAS */
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
         
@@ -137,9 +134,13 @@
 
         .tab-btn { width: auto; padding: 8px 16px; margin-right: 8px; background: #e2e8f0; color: #475569; display: inline-block; border-radius: 6px; }
         .tab-btn.active { background: #8b1a2b; color: white; }
+        
+        #loading_overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #8b1a2b; font-size: 18px; }
     </style>
 </head>
 <body>
+
+    <div id="loading_overlay">🔄 Sincronizando datos en la nube...</div>
 
     <header id="main_header">
         <div id="header_overlay" class="header-overlay"></div>
@@ -153,7 +154,6 @@
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
     </header>
 
-    <!-- METRICAS DE ESTADO -->
     <div id="sec_metrics" class="metrics" style="display:none;">
         <div class="card card-libre" onclick="abrirPestanaDetalle('libres')">
             <h3>Disponibles</h3>
@@ -174,7 +174,6 @@
         </div>
     </div>
 
-    <!-- SECCION AUTH (LOGIN / REGISTRO) -->
     <div id="sec_auth" class="panel" style="max-width: 480px; margin: 20px auto;">
         <div style="display:flex; margin-bottom:15px;">
             <button class="tab-btn active" id="tab_login" onclick="switchAuthTab('login')">Ingresar</button>
@@ -214,10 +213,7 @@
         </div>
     </div>
 
-    <!-- SECCION PRINCIPAL CON SESION ACTIVA -->
     <div id="sec_main" style="display:none;">
-
-        <!-- VISTA FUNCIONARIO -->
         <div id="panel_funcionario" class="panel" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h2>🚕 Solicitud de Vales de Taxi</h2>
@@ -273,12 +269,11 @@
             </div>
         </div>
 
-        <!-- VISTA PANEL ADMINISTRADORA -->
         <div id="panel_admin" class="grid" style="display:none;">
             <div>
                 <div class="panel">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h2>➕Agregar Vales</h2>
+                        <h2>➕ Agregar Vales</h2>
                         <span id="tag_dept_admin" class="dept-tag">---</span>
                     </div>
                     <p style="font-size:11px; color:#64748b; margin-bottom:8px;">Pega los vales de 12 dígitos con su fecha de vencimiento.</p>
@@ -286,13 +281,11 @@
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
                 </div>
 
-                <!-- CONFIGURACIÓN DE ADMIN (SOLO VISIBLE PARA INSTRUMENTACIÓN) -->
                 <div class="panel" id="panel_config_admin">
                     <h2>⚙️ Configuración y Seguridad</h2>
                     <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
                         
-                        <!-- SECCIÓN DE CAMBIO DE IMÁGENES EXCLUSIVA PARA ADMIN INSTRUMENTACIÓN -->
                         <div id="box_admin_images" style="display:none; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-top:5px;">
                             <p style="font-size:13px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:8px;">🛠️ Panel Exclusivo: Configurar Imágenes Institucionales</p>
                             
@@ -343,18 +336,20 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDnu6wCxJREkRu7CwylhXXZ1hYnY7FV7wJ-5c8TdMYjfyOkgb9QE1AFvQl3NbSKMUt/exec";
+
         const ADMIN_ROLES = { 
             "1012426957": "instrumentacion", 
             "1098789395": "enfermeria ICV", 
             "1095822732": "enfermeria CIE" 
         };
-        let adminPins = JSON.parse(localStorage.getItem("vi_admin_pins")) || { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
-        let vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
-        let usuarios = JSON.parse(localStorage.getItem("vi_usuarios")) || [
+        
+        let adminPins = { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
+        let vales = [];
+        let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
             { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
             { cc: "1095822732", nombre: "Administradora Enfermería CIE", dept: "enfermeria CIE", rol: "admin" }
@@ -366,11 +361,52 @@
             document.getElementById("l_cc").addEventListener("input", function() {
                 document.getElementById("box_pin_admin").style.display = ADMIN_ROLES[this.value.trim()] ? "block" : "none";
             });
-            render();
+            cargarDatosNube();
         });
 
+        function cargarDatosNube() {
+            document.getElementById("loading_overlay").style.display = "flex";
+            fetch(SCRIPT_URL + "?action=getData", { method: "GET", redirect: "follow" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.vales && data.vales.length > 0) vales = data.vales;
+                if (data.usuarios && data.usuarios.length > 0) usuarios = data.usuarios;
+                if (data.adminPins && Object.keys(data.adminPins).length > 0) adminPins = data.adminPins;
+                document.getElementById("loading_overlay").style.display = "none";
+                render();
+            })
+            .catch(() => {
+                document.getElementById("loading_overlay").style.display = "none";
+                vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
+                render();
+            });
+        }
+
+        function saveData() {
+            document.getElementById("loading_overlay").style.display = "flex";
+            document.getElementById("loading_overlay").innerText = "Guardando cambios en la nube...";
+            
+            localStorage.setItem("vi_vales", JSON.stringify(vales));
+            localStorage.setItem("vi_usuarios", JSON.stringify(usuarios));
+            localStorage.setItem("vi_session", JSON.stringify(currentUser));
+            localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "saveData", vales: vales, usuarios: usuarios, adminPins: adminPins })
+            }).then(() => {
+                document.getElementById("loading_overlay").style.display = "none";
+                document.getElementById("loading_overlay").innerText = "🔄 Sincronizando datos en la nube...";
+                render();
+            }).catch(() => {
+                document.getElementById("loading_overlay").style.display = "none";
+                render();
+            });
+        }
+
         function aplicarImagenesPersonalizadas() {
-            // Logo / Perfil
             const savedLogo = localStorage.getItem("vi_custom_logo");
             const img = document.getElementById("img_logo");
             if (savedLogo) {
@@ -381,7 +417,6 @@
                 img.style.display = "block";
             }
 
-            // Fondo de Portada
             const savedBg = localStorage.getItem("vi_custom_bg");
             const header = document.getElementById("main_header");
             if (savedBg) {
@@ -393,7 +428,6 @@
         }
 
         function subirImagenPersonalizada(tipo) {
-            // SEGURIDAD EXTRA: Validar que sea estrictamente la admin de instrumentación (Cédula 1012426957)
             if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
                 alert("⛔ Acceso denegado. Solo la Administradora de Instrumentación puede modificar las imágenes institucionales.");
                 return;
@@ -408,10 +442,10 @@
                     const base64Image = e.target.result;
                     if (tipo === 'logo') {
                         localStorage.setItem("vi_custom_logo", base64Image);
-                        alert("✅ ¡Logo / Perfil actualizado con éxito para todos los dispositivos!");
+                        alert("✅ ¡Logo / Perfil actualizado con éxito!");
                     } else {
                         localStorage.setItem("vi_custom_bg", base64Image);
-                        alert("✅ ¡Fondo de portada actualizado con éxito para todos los dispositivos!");
+                        alert("✅ ¡Fondo de portada actualizado con éxito!");
                     }
                     aplicarImagenesPersonalizadas();
                 };
@@ -420,8 +454,7 @@
         }
 
         function recargarDatosDesdeHijo() {
-            vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
-            render();
+            cargarDatosNube();
         }
 
         function abrirPestanaDetalle(tipo) {
@@ -448,7 +481,7 @@
                 }
             } else {
                 if (tipo === 'libres') {
-                    alert(`Hay ${valesDept.filter(v => v.est === "libre").length} vales disponibles en total en tu departamento. Para obtener uno, utiliza el botón principal "Obtener Vale Libre".`);
+                    alert(`Hay ${valesDept.filter(v => v.est === "libre").length} vales disponibles en total en tu departamento.`);
                     return; 
                 } else if (tipo === 'asignados') {
                     titulo = "Mis Vales Asignados / En Curso";
@@ -468,118 +501,69 @@
                 <html lang="es">
                 <head>
                     <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${titulo}</title>
                     <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
+                        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
                         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
                         h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
-                        
-                        .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
-                        .btn-excel:hover { background: #059669; }
-                        
-                        .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
-                        .btn-cerrar:hover { background: #dc2626; }
-
-                        .table-responsive { width: 100%; overflow-x: auto; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 480px; }
-                        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+                        .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+                        .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
                         th { background: #f8fafc; font-weight: 600; color: #475569; }
-                        .nota { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #f59e0b; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
                             <h1>${titulo}</h1>
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div style="display:flex; gap:10px;">
                                 ${esAdmin ? '<button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>' : ''}
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                             </div>
                         </div>
-                        ${isUsados && esAdmin ? '<div class="nota">💡 IMPORTANTE: Al hacer clic en "Descargar Excel", estos vales se guardarán como renovados y ya no volverán a aparecer en las próximas descargas.</div>' : ''}
-                        
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
+                        <table>
+                            <thead>
+                                <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th></tr>
+                            </thead>
+                            <tbody>
+                                ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
+                                ${datosMostrar.map(v => `
                                     <tr>
-                                        <th>Nº de Vale</th>
-                                        <th>Estado</th>
-                                        <th>Nombre</th>
-                                        <th>Fecha y Hora</th>
-                                        <th>Valor</th>
+                                        <td><strong>${v.num}</strong></td>
+                                        <td>${v.est.toUpperCase()}</td>
+                                        <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                                        <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
+                                        <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No hay registros para mostrar en esta categoría.</td></tr>' : ''}
-                                    ${datosMostrar.map(v => `
-                                        <tr>
-                                            <td><strong>${v.num}</strong></td>
-                                            <td>${v.est.toUpperCase()}</td>
-                                            <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                                            <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
-                                            <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
-
                     <script>
                         const datosExcel = ${JSON.stringify(datosMostrar)};
                         const tipoVista = '${tipo}';
                         const departamento = '${currentUser.dept}';
                         const esAdmin = ${esAdmin};
-
                         function descargarExcel() {
                             if(!esAdmin || datosExcel.length === 0) return;
-
-                            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\\n";
+                            let csv = tipoVista === 'libres' ? "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento\\n" : "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\\n";
                             datosExcel.forEach(v => {
-                                csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'","'+(v.usrNombre||'')+'","'+(v.usrCc||'')+'","'+(v.fechaHora||'')+'","'+(v.valor||'')+'","'+(v.motivo||'')+'"\\n';
+                                if(tipoVista === 'libres') csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'"\\n';
+                                else csv += '"'+v.num+'","'+v.fecVenc+'","'+(v.fechaCarga||'')+'","'+v.est+'","'+v.dept+'","'+(v.usrNombre||'')+'","'+(v.usrCc||'')+'","'+(v.fechaHora||'')+'","'+(v.valor||'')+'","'+(v.motivo||'')+'"\\n';
                             });
-
                             const blob = new Blob(["\\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
                             const link = document.createElement("a");
                             link.href = URL.createObjectURL(blob);
                             link.setAttribute("download", "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".csv");
-                            link.style.display = "none";
-                            document.body.appendChild(link);
                             link.click();
-                            document.body.removeChild(link);
-
-                            if (tipoVista === 'usados') {
-                                let baseVales = JSON.parse(localStorage.getItem("vi_vales")) || [];
-                                baseVales.forEach(v => {
-                                    if (v.dept === departamento && v.est === "usado" && !v.descargadoUsado) {
-                                        v.descargadoUsado = true;
-                                    }
-                                });
-                                localStorage.setItem("vi_vales", JSON.stringify(baseVales));
-                                if (window.opener && !window.opener.closed) {
-                                    if(typeof window.opener.recargarDatosDesdeHijo === 'function'){
-                                        window.opener.recargarDatosDesdeHijo();
-                                    }
-                                }
-                                alert("✅ ¡Excel descargado con éxito!\\nLos vales han sido marcados como procesados.");
-                                window.close();
-                            }
                         }
                     <\/script>
                 </body>
                 </html>
             `);
             nuevaVentana.document.close();
-        }
-
-        function saveData() {
-            localStorage.setItem("vi_vales", JSON.stringify(vales));
-            localStorage.setItem("vi_usuarios", JSON.stringify(usuarios));
-            localStorage.setItem("vi_session", JSON.stringify(currentUser));
-            localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
-            render();
         }
 
         function switchAuthTab(tab) {
@@ -592,9 +576,9 @@
         function register() {
             const dept = document.getElementById("r_dept").value, nombre = document.getElementById("r_name").value.trim(), cc = document.getElementById("r_cc").value.trim();
             if (!nombre || !cc) return alert("Completa tu nombre y cédula.");
-            if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora. Inicia sesión.");
+            if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora.");
             const existe = usuarios.find(u => u.cc === cc);
-            if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado. Inicia sesión.");
+            if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado.");
             
             const newUser = { cc, nombre, dept, rol: "funcionario" };
             usuarios.push(newUser); currentUser = newUser; saveData();
@@ -627,12 +611,11 @@
             const pinActual = prompt("Ingresa tu PIN actual:");
             if (pinActual === adminPins[currentUser.cc]) {
                 const nuevo = prompt("Nuevo PIN (mínimo 4 caracteres):");
-                if (nuevo && nuevo.trim().length >= 4) { adminPins[currentUser.cc] = nuevo.trim(); saveData(); alert("PIN actualizado con éxito."); }
-                else alert("El PIN debe tener al menos 4 caracteres.");
-            } else if (pinActual !== null) alert("PIN actual incorrecto.");
+                if (nuevo && nuevo.trim().length >= 4) { adminPins[currentUser.cc] = nuevo.trim(); saveData(); alert("PIN actualizado."); }
+                else alert("Mínimo 4 caracteres.");
+            } else if (pinActual !== null) alert("PIN incorrecto.");
         }
 
-        // NUEVA FUNCIÓN MEJORADA CON ALERTA DE VALES REPETIDOS Y FECHA DE REGISTRO
         function agregarValesMasivos() {
             const raw = document.getElementById("add_bulk_input").value.trim();
             if (!raw) return alert("Ingresa vales.");
@@ -644,8 +627,6 @@
                 const p = line.trim().split(/\s+/);
                 if (p.length >= 2) {
                     const num = p[0].toUpperCase(), fec = p[1];
-                    
-                    // Verificamos si el vale ya existe en el departamento
                     const valeExistente = vales.find(v => v.num === num && v.dept === currentUser.dept);
                     
                     if (!valeExistente) {
@@ -653,14 +634,12 @@
                         agregados++;
                     } else {
                         repetidos++;
-                        const fechaRegistroAnterior = valeExistente.fechaCarga || "una fecha anterior";
-                        alert(`⚠️ El vale número "${num}" ya fue registrado el día ${fechaRegistroAnterior} y no se volverá a agregar.`);
                     }
                 }
             });
             document.getElementById("add_bulk_input").value = ""; 
             saveData();
-            alert(`Resumen de carga: ${agregados} agregados con éxito, ${repetidos} repetidos omitidos.`);
+            alert(`Carga completada: ${agregados} agregados, ${repetidos} repetidos omitidos.`);
         }
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
@@ -695,7 +674,7 @@
             const val = document.getElementById("v_valor_servicio").value;
             if (!val || val <= 0) return alert("Ingresa un valor.");
             const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
-            if (v) { v.est = "usado"; v.valor = val; v.fechaHora = new Date().toLocaleString("es-CO"); document.getElementById("v_valor_servicio").value = ""; saveData(); alert("Vale usado."); }
+            if (v) { v.est = "usado"; v.valor = val; v.fechaHora = new Date().toLocaleString("es-CO"); document.getElementById("v_valor_servicio").value = ""; saveData(); alert("Registrado con éxito."); }
         }
 
         function accionNoUsoVale() {
@@ -719,17 +698,18 @@
             else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
 
             if (valesDept.length === 0) return alert("No hay registros.");
-            let csv = "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
-            valesDept.forEach(v => csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga||''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`);
+            
+            let csv = filtro === "libres" ? "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento\n" : "Numero Vale,Vencimiento,Fecha Carga,Estado,Departamento,Nombre,Cedula,Fecha y Hora,Valor COP,Motivo Cancelacion\n";
+            valesDept.forEach(v => {
+                if(filtro === "libres") csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga||''}","${v.est}","${v.dept}"\n`;
+                else csv += `"${v.num}","${v.fecVenc}","${v.fechaCarga||''}","${v.est}","${v.dept}","${v.usrNombre}","${v.usrCc}","${v.fechaHora}","${v.valor}","${v.motivo}"\n`;
+            });
             
             const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a"); 
             link.href = URL.createObjectURL(blob);
             link.setAttribute("download", `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.csv`);
-            link.style.display = "none";
-            document.body.appendChild(link); 
-            link.click(); 
-            document.body.removeChild(link);
+            link.click();
         }
 
         function renderAdmin() {
@@ -750,7 +730,6 @@
 
             vd.forEach(v => {
                 let badge = "badge-libre"; if(v.est === "obtenido"||v.est === "asignado") badge="badge-asig"; else if(v.est==="usado") badge="badge-usado"; else if(v.est==="cancelado") badge="badge-canc";
-                let valDisplay = v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---');
                 tbI.innerHTML += `<tr><td><strong>${v.num}</strong></td><td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td><td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td><td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td><td><button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;">🗑️</button></td></tr>`;
             });
         }
@@ -765,7 +744,6 @@
                 document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
                 const vd = vales.filter(v => v.dept === currentUser.dept);
                 
-                // MOSTRAR U OCULTAR SECCIÓN DE CAMBIO DE IMÁGENES SEGÚN SEA EXCLUSIVAMENTE ADMIN DE INSTRUMENTACIÓN (Cédula 1012426957)
                 if (currentUser.rol === "admin" && currentUser.dept === "instrumentacion" && currentUser.cc === "1012426957") {
                     document.getElementById("box_admin_images").style.display = "block";
                 } else {
@@ -781,7 +759,6 @@
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
                     document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
-                    
                     const misVales = vd.filter(v => v.usrCc === currentUser.cc);
                     document.getElementById("m_asig").innerText = misVales.length;
                     document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
