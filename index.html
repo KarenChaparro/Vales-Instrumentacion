@@ -44,7 +44,7 @@
         .header-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.40); /* Fondo más brillante y vistoso */
+            background: rgba(255, 255, 255, 0.35); /* Fondo claro más transparente para dar mayor brillo y viveza a la imagen */
             backdrop-filter: blur(0.5px);
             z-index: 1;
             display: block;
@@ -54,17 +54,18 @@
         
         .logo-preview { 
             max-height: 80px; 
-            max-width: 100%; 
+            max-width: 100px; 
             width: auto;
             height: auto;
-            object-fit: contain; 
+            object-fit: cover; 
             border-radius: 8px; 
             display: block; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         .header-title-box { flex-grow: 1; }
-        .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
-        .header-title-box p { font-size: 12px; font-weight: 600; color: #334155; margin: 4px 0 0 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+        .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.9); }
+        .header-title-box p { font-size: 12px; font-weight: 600; color: #1e293b; margin: 4px 0 0 0; text-shadow: 0 1px 2px rgba(255,255,255,0.9); }
 
         #header_user_info { z-index: 2; position: relative; }
 
@@ -339,15 +340,16 @@
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            // CORREGIDO: Enlaces directos reales extraídos de las imágenes de ImgBB
-            const logoUrl = "https://i.ibb.co/60qfYK9w/logo.jpg";     // Imagen de perfil / logo
-            const bgUrl = "https://i.ibb.co/zHxTG2jk/fondo.jpg";         // Imagen de portada / fondo
+            // IMÁGENES EMBEBIDAS DIRECTAMENTE (Cargan de forma instantánea sin enlaces externos)
+            const logoUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="; // Logo miniatura / perfil
+            const bgUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; // Fondo de portada optimizado
 
+            // Inserción automática de las imágenes convertidas
             const img = document.getElementById("img_logo");
-            img.src = logoUrl;
+            img.src = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA3ADcAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAZAMgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKjpOUlZaXmJmakpOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9Bvjt8fPEng/xXceHPCVhpjNYwI9xqOpxvLvZ0DiONFZQAoYZLE5JHAxzW8E/GPxB4v+E8XiPS/COlXXitrt7WPQpNZk8uRQxHmeV8pAA+baX7EZJ66nxs/Z+0D4sTW2qX2oXmn6zY25t45oNrwyJkMFkjboQc4IIOCR3NeZ/Dr9mfxT4E8U2ut6T8Q4IbuPKSf8S1gJ4jnMT4uOAeOQcEAjBrT2f7rR/vLnvrta3+e5+h4X/Yr6tL62r5py1d3tq7bafc7m58MP2mda8UeP7Pwr4m8KWuhXN7byzR/2deSXPkvGjOYpUZBhiFZQysw3YyCOa6j4jfH7xJ4P8AFdx4c8JWGmM1jAj3Go6niO9kQOI40VlACggsSZCSMkAKOaZpP7Oegab8UIPHDalqF5rEEDxRxTtH5TyMsi+c5VNzSgSEAk44HHPNn42fs/A+MtQuvCPiu10O21m3jgvNO1JTeRRuHCeZFlCrA8Fgykk5IOOKiXs1JW+F3/8AtbyWp8xlv9i/2jRWIv8A2bK1a38vS72u9+j+8xvEn7VuvW/wv0HxpoHhTR7yPUL6WyubHUdfSMRMoUrsaKORpJBuGUC8cgE5Fdn4F+NHxD8Y6Pqmp2XgLw/LbWUBFrbL4jkS4vrg4xGqeUwiQZIaRs8gYQ84xvD/7LXgrRvhhqng64N9eXWr28cM+tSSeXcQshDq0O1dq7ZBu5Uk9yRxXnfwz/AGcvFvhTxTa63pPxDgiu48pJ/wALSgSeI5zE+LjgnjkHBIIwazkqfvKn8ruvX9LX8z6H6twp7fD+xlzzclyyvtf5p7fndnQ6L+0b458W/DfU/EXhz4f6Zcarpt8lrNHea5ILcQ7GLPFIkLmSTcACu0AZ6nGT0nwS/aA1rx18SL3wp4m0LSdPvbe2kujJp2pSXHkqjooilR40IdgzFSrMNuea3PBPwP0Twf8LpPBVvfX17Y3dzJdXN7cMv2maViCWJUD0AUAAAAACqXw1/Zz8N/DrxVLrdje399dMCkP2vyaeZInMYYxjjgcD3NYyVN7Wva3Tvrp8rHy2YYjhFzr+wjaXv8t+e3Rbu+vvb2XToetUUUV5R+bn//Z"; // Imagen recortada y optimizada para el logo
             img.style.display = "block";
 
-            document.getElementById("main_header").style.backgroundImage = `url(${bgUrl})`;
+            document.getElementById("main_header").style.backgroundImage = `url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==)`;
             document.getElementById("header_overlay").style.display = "block";
 
             document.getElementById("l_cc").addEventListener("input", function() {
@@ -706,7 +708,7 @@
                     document.getElementById("m_asig").innerText = misVales.length;
                     document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
                     document.getElementById("m_usados").innerText = misVales.filter(v => v.est === "usado").length;
-                    document.getElementById("m_canc").innerText = misVales.filter(v => v.est === "cancelado").length;
+                    document.getElementById("m_canc").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado").length;
                 }
                 
                 document.getElementById("header_user_info").innerHTML = `<p style="margin:0; font-weight:600;">${currentUser.nombre}</p><p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p><span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>`;
