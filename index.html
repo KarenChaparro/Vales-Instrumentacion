@@ -7,10 +7,9 @@
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
-        
         header { 
            background: #ffffff; 
-            background-size: 100% 100%; 
+            background-size: cover; /* Cambiado de 100% a cover para mantener proporción en PC */
             background-position: center; 
             background-repeat: no-repeat;
             position: relative;
@@ -27,42 +26,23 @@
 
         @media (max-width: 768px) {
             header { 
-                flex-direction: column; 
-                align-items: flex-start; 
-                gap: 15px;
+                flex-direction: row; /* Mantiene los elementos alineados horizontalmente en móvil si el espacio lo permite */
+                align-items: center; 
+                gap: 10px;
                 padding: 15px;
                 background-size: cover; 
             }
-            #header_user_info {
-                width: 100%;
-                text-align: left !important;
-                border-top: 1px solid rgba(0,0,0,0.1);
-                padding-top: 10px;
+            .logo-preview {
+                max-height: 70px; /* Reduce un poco el logo en móviles para que no sature la pantalla */
+                max-width: 90px;
             }
-        }
-
-        .header-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.40); 
-            backdrop-filter: blur(0.5px);
-            z-index: 1;
-            display: block;
-        }
-
-        .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
-        
-        .logo-preview { 
-            max-height: 110px;  
-            max-width: 140px;   
-            width: auto;
-            height: auto;
-            object-fit: contain; 
-            border-radius: 10px; 
-            display: none; 
-            background: white;
-            padding: 3px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            #header_user_info {
+                width: auto;
+                text-align: right !important;
+                border-top: none;
+                padding-top: 0;
+                font-size: 11px;
+            }
         }
         
         .header-title-box { flex-grow: 1; }
