@@ -59,7 +59,7 @@
         
         .logo-preview { 
             max-height: 80px;  
-            max-width: 180px;   
+            max-width: 100px;   
             width: auto;
             height: auto;
             object-fit: contain; 
@@ -356,6 +356,8 @@
         
         let adminPins = { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
         let vales = [];
+        let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
+        
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
             { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
@@ -364,12 +366,26 @@
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
         document.addEventListener("DOMContentLoaded", () => {
+            limpiarPapeleraAutomatica();
             aplicarImagenesPersonalizadas();
             document.getElementById("l_cc").addEventListener("input", function() {
                 document.getElementById("box_pin_admin").style.display = ADMIN_ROLES[this.value.trim()] ? "block" : "none";
             });
             cargarDatosNube();
         });
+
+        // Limpiar automáticamente vales en papelera con más de 2 días de antigüedad
+        function limpiarPapeleraAutomatica() {
+            const ahora = new Date().getTime();
+            const dosDiasMs = 2 * 24 * 60 * 60 * 1000;
+            const antes = papeleraLibres.length;
+            papeleraLibres = papeleraLibres.filter(item => {
+                return (ahora - item.timestampEliminacion) < dosDiasMs;
+            });
+            if (papeleraLibres.length !== antes) {
+                localStorage.setItem("vi_papelera_libres", JSON.stringify(papeleraLibres));
+            }
+        }
 
         function cargarDatosNube() {
             document.getElementById("loading_overlay").style.display = "flex";
@@ -397,6 +413,7 @@
             localStorage.setItem("vi_usuarios", JSON.stringify(usuarios));
             localStorage.setItem("vi_session", JSON.stringify(currentUser));
             localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
+            localStorage.setItem("vi_papelera_libres", JSON.stringify(papeleraLibres));
 
             fetch(SCRIPT_URL, {
                 method: "POST",
@@ -573,14 +590,14 @@
 
                             ${esAdmin ? `
                                 <div class="papelera-box">
-                                    <h3>🗑️ Papelera de Vales Libres Eliminados (<span id="contador_papelera">0</span>)</h3>
-                                    <p style="font-size:12px; color:#881337; margin-bottom:10px;">Si borraste un vale por equivocación, puedes restaurarlo aquí instantáneamente:</p>
+                                    <h3>🗑️ Papelera de Vales Libres (<span id="contador_papelera">0</span>)</h3>
+                                    <p style="font-size:12px; color:#881337; margin-bottom:10px;">Los vales eliminados se borrarán por completo de forma automática después de 2 días. Puedes restaurarlos aquí:</p>
                                     <table>
                                         <thead>
-                                            <tr><th>Nº de Vale</th><th>Vencimiento</th><th>Acción</th></tr>
+                                            <tr><th>Nº de Vale</th><th>Vencimiento</th><th>Eliminado el</th><th>Acción</th></tr>
                                         </thead>
                                         <tbody id="tabla_papelera_body">
-                                            <tr><td colspan="3" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>
+                                            <tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -623,21 +640,27 @@
                                     \`).join('');
                                 }
 
-                                const papeleraActual = window.opener.papeleraLibres || [];
+                                const papeleraActual = (window.opener.papeleraLibres || []).filter(item => item.dept === '${currentUser.dept}');
                                 document.getElementById("contador_papelera").innerText = papeleraActual.length;
                                 const tbodyPapelera = document.getElementById("tabla_papelera_body");
                                 if(papeleraActual.length === 0) {
-                                    tbodyPapelera.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
+                                    tbodyPapelera.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
                                 } else {
                                     tbodyPapelera.innerHTML = papeleraActual.map(v => \`
                                         <tr>
                                             <td><strong>\${v.num}</strong></td>
                                             <td>\${v.fecVenc || '---'}</td>
+                                            <td>\${v.fechaEliminacion || '---'}</td>
                                             <td><button onclick="window.opener.restaurarValeGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
                                         </tr>
                                     \`).join('');
                                 }
                             }
+
+                            // Cargar la papelera inicial al abrir
+                            window.onload = function() {
+                                actualizarVentanaPapelera();
+                            };
                         <\/script>
                     </body>
                     </html>
@@ -729,14 +752,14 @@
             nuevaVentana.document.close();
         }
 
-        // FUNCIONES GLOBALES DE PAPELERA Y ELIMINACIÓN PARA LA VENTANA PRINCIPAL
-        let papeleraLibres = [];
-
+        // FUNCIONES GLOBALES DE PAPELERA CON RETENCIÓN DE 2 DÍAS
         function eliminarValeLibreGlobal(num) {
-            if(confirm("¿Estás segura de enviar el vale " + num + " a la papelera?")) {
+            if(confirm("¿Enviar el vale " + num + " a la papelera? Se borrará automáticamente en 2 días.")) {
                 let idx = vales.findIndex(v => v.num === num && v.dept === currentUser.dept && v.est === 'libre');
                 if(idx !== -1) {
                     let eliminado = vales.splice(idx, 1)[0];
+                    eliminado.timestampEliminacion = new Date().getTime();
+                    eliminado.fechaEliminacion = new Date().toLocaleString("es-CO");
                     papeleraLibres.push(eliminado);
                     saveData();
                 }
@@ -744,20 +767,29 @@
         }
 
         function eliminarTodosLibresGlobal() {
-            if(confirm("¿Estás segura de eliminar TODOS los vales libres de este departamento? Se moverán a la papelera.")) {
+            if(confirm("¿Enviar TODOS los vales libres de este departamento a la papelera? Se borrarán definitivamente en 2 días.")) {
                 let resto = vales.filter(v => !(v.dept === currentUser.dept && v.est === 'libre'));
                 let eliminados = vales.filter(v => v.dept === currentUser.dept && v.est === 'libre');
                 
+                const ahoraMs = new Date().getTime();
+                const fechaStr = new Date().toLocaleString("es-CO");
+                eliminados.forEach(item => {
+                    item.timestampEliminacion = ahoraMs;
+                    item.fechaEliminacion = fechaStr;
+                    papeleraLibres.push(item);
+                });
+
                 vales = resto;
-                papeleraLibres.push(...eliminados);
                 saveData();
             }
         }
 
         function restaurarValeGlobal(num) {
-            let idx = papeleraLibres.findIndex(v => v.num === num);
+            let idx = papeleraLibres.findIndex(v => v.num === num && v.dept === currentUser.dept);
             if(idx !== -1) {
                 let restaurado = papeleraLibres.splice(idx, 1)[0];
+                delete restaurado.timestampEliminacion;
+                delete restaurado.fechaEliminacion;
                 vales.push(restaurado);
                 saveData();
             }
