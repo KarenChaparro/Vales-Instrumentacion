@@ -190,8 +190,7 @@
             <label style="font-size:12px;">Selecciona tu Departamento:</label>
             <select id="l_dept">
                 <option value="instrumentacion">Instrumentación</option>
-                <option value="enfermeria ICV">Enfermería ICV</option>
-                <option value="enfermeria CIE">Enfermería CIE</option>
+                <option value="enfermeria ICV">Enfermería ICV/CIE</option>
             </select>
             <label style="font-size:12px;">Número de Cédula:</label>
             <input type="text" id="l_cc" placeholder="Ingresa tu número de cédula">
@@ -207,8 +206,7 @@
             <label style="font-size:12px;">Departamento:</label>
             <select id="r_dept">
                 <option value="instrumentacion">Instrumentación</option>
-                <option value="enfermeria ICV">Enfermería ICV</option>
-                <option value="enfermeria CIE">Enfermería CIE</option>
+                <option value="enfermeria ICV">Enfermería ICV/CIE</option>
             </select>
             <label style="font-size:12px;">Nombre Completo:</label>
             <input type="text" id="r_name" placeholder="Ej: Maximiliano Rios">
@@ -350,18 +348,16 @@
 
         const ADMIN_ROLES = { 
             "1012426957": "instrumentacion", 
-            "1098789395": "enfermeria ICV", 
-            "1095822732": "enfermeria CIE" 
+            "1098789395": "enfermeria ICV/CIE", 
         };
 
-        let adminPins = { "1012426957": "1234", "1098789395": "1234", "1095822732": "1234" };
+        let adminPins = { "1012426957": "1234", "1098789395": "1234"  };
         let vales = [];
         let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
 
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
-            { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV", rol: "admin" },
-            { cc: "1095822732", nombre: "Administradora Enfermería CIE", dept: "enfermeria CIE", rol: "admin" }
+            { cc: "1098789395", nombre: "Administradora Enfermería ICV", dept: "enfermeria ICV/CIE", rol: "admin" },
         ];
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
