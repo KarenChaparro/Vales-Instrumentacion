@@ -6,16 +6,16 @@
     <title id="page_title">Asignación de Vales</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f1f5f9; padding: 20px; max-width: 1200px; margin: 0 auto; color: #334155; }
+        body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
         
-        /* ENCABEZADO CON IMAGEN DE FONDO COMPLETA */
+        /* ENCABEZADO CON IMAGEN DE FONDO ADAPTATIVA PARA MÓVILES */
         header { 
             background: #ffffff; 
-            background-size: 100% 100%; 
+            background-size: cover; 
             background-position: center; 
             background-repeat: no-repeat;
             position: relative;
-            padding: 24px 30px; 
+            padding: 20px; 
             border-radius: 14px; 
             display: flex; 
             justify-content: space-between; 
@@ -23,38 +23,55 @@
             margin-bottom: 20px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
             overflow: hidden;
-            min-height: 150px;
+            min-height: 140px;
+        }
+
+        @media (max-width: 768px) {
+            header { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                gap: 15px;
+                padding: 15px;
+            }
+            #header_user_info {
+                width: 100%;
+                text-align: left !important;
+                border-top: 1px solid rgba(0,0,0,0.1);
+                padding-top: 10px;
+            }
         }
 
         .header-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(1px);
             z-index: 1;
             display: none;
         }
 
-        .logo-container { display: flex; align-items: center; gap: 24px; width: 100%; z-index: 2; position: relative; }
+        .logo-container { display: flex; align-items: center; gap: 15px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
         .logo-preview { 
-            max-height: 120px; 
-            max-width: 400px; 
+            max-height: 80px; 
+            max-width: 100%; 
+            width: auto;
+            height: auto;
             object-fit: contain; 
             border-radius: 8px; 
             display: none; 
         }
         
         .header-title-box { flex-grow: 1; }
-        .header-title-box h1 { font-size: 22px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; }
-        .header-title-box p { font-size: 13px; font-weight: 500; color: #64748b; margin: 4px 0 0 0; }
+        .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; }
+        .header-title-box p { font-size: 12px; font-weight: 500; color: #64748b; margin: 4px 0 0 0; }
 
         #header_user_info { z-index: 2; position: relative; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 
-        .panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
         h1, h2, h3 { margin: 0 0 12px 0; color: #0f172a; }
         
         input, select, textarea, button { width: 100%; padding: 11px 14px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
@@ -86,23 +103,25 @@
         .dept-tag { font-size: 12px; font-weight: bold; padding: 6px 12px; background: #8b1a2b; color: #ffffff; border-radius: 6px; }
 
         /* RECUADROS DE METRICAS */
-        .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
         
-        .card { background: white; padding: 18px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card h3 { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .card p { font-size: 28px; font-weight: bold; margin: 0; }
+        .card h3 { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .card p { font-size: 24px; font-weight: bold; margin: 0; }
 
         .card-libre { border-top: 5px solid #10b981; } .card-libre p { color: #059669; }
         .card-asig { border-top: 5px solid #2563eb; } .card-asig p { color: #1d4ed8; }
         .card-usado { border-top: 5px solid #ef4444; } .card-usado p { color: #dc2626; }
         .card-canc { border-top: 5px solid #f59e0b; } .card-canc p { color: #d97706; }
 
-        .vale-box { background: #0f172a; color: #38bdf8; font-size: 28px; text-align: center; padding: 20px; font-family: monospace; font-weight: bold; border-radius: 10px; margin: 15px 0; letter-spacing: 3px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .vale-box { background: #0f172a; color: #38bdf8; font-size: 24px; text-align: center; padding: 15px; font-family: monospace; font-weight: bold; border-radius: 10px; margin: 15px 0; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .btn-copy { background: #334155; color: white; font-size: 13px; padding: 8px 16px; width: auto; margin: 0; border-radius: 6px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        /* CONTENEDOR DE TABLAS CON SCROLL EN MÓVILES */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; min-width: 480px; }
         th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         th { background: #f8fafc; color: #475569; font-weight: 600; }
 
@@ -282,7 +301,7 @@
                 <div class="panel">
                     <h2>👥 Personal Registrado</h2>
                     <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
-                    <div style="max-height:220px; overflow-y:auto;">
+                    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
                         <table>
                             <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
                             <tbody id="tbl_usuarios"></tbody>
@@ -306,7 +325,7 @@
                             <button onclick="descargarReporteExcel()" style="width:auto; font-size:12px; margin:0; padding:8px 12px;">📊 Descargar</button>
                         </div>
                     </div>
-                    <div style="max-height:520px; overflow-y:auto;">
+                    <div style="max-height:520px; overflow-y:auto;" class="table-responsive">
                         <table>
                             <thead>
                                 <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha Carga/Uso</th><th>Acción</th></tr>
@@ -375,7 +394,6 @@
             } else {
                 // VISTA PARA FUNCIONARIO COMÚN
                 if (tipo === 'libres') {
-                    // BLOQUEO: Los usuarios comunes ven la cantidad en la tarjeta pero NO ven la lista de códigos libres
                     alert(`Hay ${valesDept.filter(v => v.est === "libre").length} vales disponibles en total en tu departamento. Para obtener uno, utiliza el botón principal "Obtener Vale Libre".`);
                     return; 
                 } else if (tipo === 'asignados') {
@@ -396,12 +414,13 @@
                 <html lang="es">
                 <head>
                     <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${titulo}</title>
                     <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 30px; color: #334155; }
-                        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
-                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; }
-                        h1 { color: #8b1a2b; margin: 0; font-size: 24px; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
+                        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+                        h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
                         
                         .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
                         .btn-excel:hover { background: #059669; }
@@ -409,7 +428,8 @@
                         .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
                         .btn-cerrar:hover { background: #dc2626; }
 
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        .table-responsive { width: 100%; overflow-x: auto; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 480px; }
                         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
                         th { background: #f8fafc; font-weight: 600; color: #475569; }
                         .nota { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; border-left: 4px solid #f59e0b; }
@@ -419,36 +439,38 @@
                     <div class="container">
                         <div class="header">
                             <h1>${titulo}</h1>
-                            <div style="display:flex; gap:10px;">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
                                 ${esAdmin ? '<button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>' : ''}
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                             </div>
                         </div>
                         ${isUsados && esAdmin ? '<div class="nota">💡 IMPORTANTE: Al hacer clic en "Descargar Excel", estos vales se guardarán como renovados y ya no volverán a aparecer en las próximas descargas.</div>' : ''}
                         
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nº de Vale</th>
-                                    <th>Estado</th>
-                                    <th>Nombre</th>
-                                    <th>Fecha y Hora</th>
-                                    <th>Valor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No hay registros para mostrar en esta categoría.</td></tr>' : ''}
-                                ${datosMostrar.map(v => `
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td><strong>${v.num}</strong></td>
-                                        <td>${v.est.toUpperCase()}</td>
-                                        <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                                        <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
-                                        <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
+                                        <th>Nº de Vale</th>
+                                        <th>Estado</th>
+                                        <th>Nombre</th>
+                                        <th>Fecha y Hora</th>
+                                        <th>Valor</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">No hay registros para mostrar en esta categoría.</td></tr>' : ''}
+                                    ${datosMostrar.map(v => `
+                                        <tr>
+                                            <td><strong>${v.num}</strong></td>
+                                            <td>${v.est.toUpperCase()}</td>
+                                            <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                                            <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
+                                            <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <script>
@@ -711,10 +733,8 @@
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
-                    // CONTADORES GLOBALES DE DISPONIBLES PARA EL FUNCIONARIO (Ven cuántos hay en total en el departamento, ej: 50 -> 45)
                     document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
                     
-                    // Métricas personales para el resto de tarjetas del funcionario
                     const misVales = vd.filter(v => v.usrCc === currentUser.cc);
                     document.getElementById("m_asig").innerText = misVales.length;
                     document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
