@@ -844,27 +844,42 @@
                 else alert("Mínimo 4 caracteres.");
             } else if (pinActual !== null) alert("PIN incorrecto.");
         }
-
-        function agregarValesMasivos() {
+function agregarValesMasivos() {
             const raw = document.getElementById("add_bulk_input").value.trim();
             if (!raw) return alert("Ingresa vales.");
             
+            // Contamos cuántas líneas válidas hay en el texto pegado
+            const lineas = raw.split('\n').filter(line => line.trim().split(/\s+/).length >= 2);
+            const cantidad = lineas.length;
+
+            if (cantidad === 0) {
+                return alert("No se detectaron vales válidos. Revisa que cada línea tenga el número y la fecha.");
+            }
+
+            // Ventana de alerta de confirmación
+            const confirmar = confirm(`¿Estás seguro de que deseas cargar ${cantidad} vales al inventario?`);
+            if (!confirmar) return; // Si le da a "Cancelar", no hace nada
+
             let agregados = 0, repetidos = 0;
             const fechaCargaActual = new Date().toLocaleDateString("es-CO");
             
-            raw.split('\n').forEach(line => {
+            lineas.forEach(line => {
                 const p = line.trim().split(/\s+/);
-                if (p.length >= 2) {
-                    const num = p[0].toUpperCase(), fec = p[1];
-                    const valeExistente = vales.find(v => v.num === num && v.dept === currentUser.dept);
-                    
-                    if (!valeExistente) {
-                        vales.push({ num, fecVenc: fec, dept: currentUser.dept, est: "libre", usrNombre: "", usrCc: "", fechaHora: "", valor: "", motivo: "", fechaCarga: fechaCargaActual, descargadoUsado: false });
-                        agregados++;
-                    } else {
-                        repetidos++;
-                    }
+                const num = p[0].toUpperCase(), fec = p[1];
+                const valeExistente = vales.find(v => v.num === num && v.dept === currentUser.dept);
+                
+                if (!valeExistente) {
+                    vales.push({ num, fecVenc: fec, dept: currentUser.dept, est: "libre", usrNombre: "", usrCc: "", fechaHora: "", valor: "", motivo: "", fechaCarga: fechaCargaActual, descargadoUsado: false });
+                    agregados++;
+                } else {
+                    repetidos++;
                 }
+            });
+            
+            document.getElementById("add_bulk_input").value = ""; 
+            saveData();
+            alert(`Carga completada: ${agregados} agregados, ${repetidos} repetidos omitidos.`);
+        }
             });
             document.getElementById("add_bulk_input").value = ""; 
             saveData();
