@@ -486,7 +486,6 @@
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             let titulo = "Detalles de Vales";
             let datosMostrar = [];
-            let isUsados = false;
             let esAdmin = (currentUser.rol === "admin");
 
             if (esAdmin) {
@@ -499,7 +498,6 @@
                 } else if (tipo === 'usados') {
                     titulo = "Vales Usados";
                     datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
-                    isUsados = true;
                 } else if (tipo === 'cancelados') {
                     titulo = "Vales Cancelados";
                     datosMostrar = valesDept.filter(v => v.est === "cancelado");
