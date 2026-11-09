@@ -513,7 +513,7 @@
                     titulo = "Vales Asignados";
                     datosMostrar = valesDept.filter(v => v.est !== "libre");
                 } else if (tipo === 'usados') {
-                    titulo = "Vales Usados";
+                    titulo = "Vales Usados (Nuevos sin descargar)";
                     datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
                 } else if (tipo === 'cancelados') {
                     titulo = "Vales Cancelados";
@@ -887,7 +887,6 @@
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
 
-        // BLOQUEO TEMPORAL Y LIBERACIÓN PARA ADMINISTRADORES
         function bloquearVale(num) {
             const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
             if (v) {
@@ -937,7 +936,6 @@
             }
         }
 
-        // SOLUCIÓN DE CONCURRENCIA SIMULTÁNEA: Verificación atómica en tiempo real
         function obtenerValeLibre() {
             let valesActuales = JSON.parse(localStorage.getItem("vi_vales")) || vales;
             let libre = valesActuales.find(v => v.est === "libre" && v.dept === currentUser.dept);
@@ -1003,18 +1001,35 @@
             }
         }
 
-        // DESCARGA DE EXCEL REAL (.xlsx) USANDO SHEETJS
+        // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
         function descargarReporteExcel() {
             if (currentUser.rol !== "admin") return;
             const filtro = document.getElementById("export_filter").value;
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             
-            if (filtro === "usados") valesDept = valesDept.filter(v => v.est === "usado");
-            else if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
-            else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
-            else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
+            if (filtro === "usados") {
+                // Filtramos solo los usados que NO han sido descargados todavía
+                valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
+                
+                if (valesDept.length === 0) {
+                    return alert("No hay nuevos vales usados pendientes por descargar.");
+                }
 
-            if (valesDept.length === 0) return alert("No hay registros.");
+                // Marcamos cada uno de estos vales como descargados
+                valesDept.forEach(v => {
+                    let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
+                    if (valeReal) valeReal.descargadoUsado = true;
+                });
+
+                // Guardamos el cambio en la nube y localStorage
+                saveData();
+            } else {
+                if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
+                else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
+                else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
+
+                if (valesDept.length === 0) return alert("No hay registros para este filtro.");
+            }
 
             const datosFormateados = valesDept.map(v => ({
                 "Número de Vale": v.num,
@@ -1097,6 +1112,7 @@
                     const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
                     document.getElementById("m_asig").innerText = asignadosTotal.length;
                     document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                    // Contador de usados solo muestra los que faltan por descargar
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
