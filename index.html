@@ -33,17 +33,8 @@
                 padding: 15px;
                 background-size: cover; 
             }
-            .logo-preview {
-                max-height: 55px;
-                max-width: 70px;
-            }
-            #header_user_info {
-                width: auto;
-                text-align: right !important;
-                border-top: none;
-                padding-top: 0;
-                font-size: 11px;
-            }
+            .logo-preview { max-height: 55px; max-width: 70px; }
+            #header_user_info { width: auto; text-align: right !important; border-top: none; padding-top: 0; font-size: 11px; }
         }
 
         .header-overlay {
@@ -58,16 +49,9 @@
         .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
         
         .logo-preview { 
-            max-height: 80px;  
-            max-width: 180px;   
-            width: auto;
-            height: auto;
-            object-fit: contain; 
-            border-radius: 8px; 
-            display: none; 
-            background: white;
-            padding: 3px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            max-height: 80px; max-width: 180px; width: auto; height: auto;
+            object-fit: contain; border-radius: 8px; display: none; background: white;
+            padding: 3px; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
         
         .header-title-box { flex-grow: 1; }
@@ -94,18 +78,9 @@
         .btn-warning { background: #f59e0b; color: white; } .btn-warning:hover { background: #d97706; }
 
         .btn-pin-style { 
-            background: #8b1a2b; 
-            color: white; 
-            border-left: 5px solid #5d111d; 
-            font-size: 13px; 
-            font-weight: 600; 
-            text-align: center; 
-            padding: 12px; 
-            cursor: pointer; 
-            margin: 0; 
-            border-radius: 8px; 
-            display: block; 
-            transition: all 0.2s;
+            background: #8b1a2b; color: white; border-left: 5px solid #5d111d; 
+            font-size: 13px; font-weight: 600; text-align: center; padding: 12px; 
+            cursor: pointer; margin: 0; border-radius: 8px; display: block; transition: all 0.2s;
         }
         .btn-pin-style:hover { background: #6e1422; }
 
@@ -359,6 +334,7 @@
         let adminPins = { "1012426957": "1234", "1098789395": "1234" };
         let vales = [];
         let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
+        let historialDescargas = JSON.parse(localStorage.getItem("vi_historial_descargas")) || [];
         
         let usuarios = [
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
@@ -414,6 +390,7 @@
             localStorage.setItem("vi_session", JSON.stringify(currentUser));
             localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
             localStorage.setItem("vi_papelera_libres", JSON.stringify(papeleraLibres));
+            localStorage.setItem("vi_historial_descargas", JSON.stringify(historialDescargas));
 
             fetch(SCRIPT_URL, {
                 method: "POST",
@@ -660,10 +637,13 @@
                             window.onload = function() {
                                 actualizarVentanaPapelera();
                             };
-                        <\/script>
+                        </script>
                     </html>
                 `);
             } else {
+                // Si la ventana abierta es la de "usados", agregamos adentro el botoncito de Historial de Lotes
+                const esUsados = (tipo === 'usados' && esAdmin);
+                
                 nuevaVentana.document.write(`
                     <!DOCTYPE html>
                     <html lang="es">
@@ -677,41 +657,63 @@
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
                             .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+                            .btn-historial-toggle { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
+                            .seccion-historial { display: none; margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; }
                         </style>
                     </head>
                     <body>
                         <div class="container">
                             <div class="header">
                                 <h1>${titulo}</h1>
-                                <div style="display:flex; gap:10px;">
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    ${esUsados ? '<button class="btn-historial-toggle" onclick="toggleHistorial()">📂 Ver Historial de Lotes Descargados</button>' : ''}
                                     ${esAdmin ? '<button class="btn-excel" onclick="descargarExcelReal()">📊 Descargar Excel (.xlsx)</button>' : ''}
                                     <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
                                 </div>
                             </div>
-                            <input type="text" id="filtro_general" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarGeneral()">
-                            <table>
-                                <thead>
-                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th></tr>
-                                </thead>
-                                <tbody id="tabla_general_body">
-                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
-                                    ${datosMostrar.map(v => `
-                                        <tr class="fila-general">
-                                            <td><strong>${v.num}</strong></td>
-                                            <td>${v.est.toUpperCase()}</td>
-                                            <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-                                            <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
-                                            <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+
+                            <div id="contenedor_tabla_principal">
+                                <input type="text" id="filtro_general" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarGeneral()">
+                                <table>
+                                    <thead>
+                                        <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th></tr>
+                                    </thead>
+                                    <tbody id="tabla_general_body">
+                                        ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
+                                        ${datosMostrar.map(v => `
+                                            <tr class="fila-general">
+                                                <td><strong>${v.num}</strong></td>
+                                                <td>${v.est.toUpperCase()}</td>
+                                                <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+                                                <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
+                                                <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            ${esUsados ? `
+                                <div id="seccion_historial_lotes" class="seccion-historial">
+                                    <h3 style="color:#8b1a2b; margin-top:0; font-size:16px;">📂 Historial de Lotes de Vales Usados Descargados</h3>
+                                    <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Consulta o vuelve a descargar las descargas anteriores por fecha y hora:</p>
+                                    <table>
+                                        <thead>
+                                            <tr><th>Fecha y Hora del Lote</th><th>Cantidad</th><th>Acción</th></tr>
+                                        </thead>
+                                        <tbody id="tbl_historial_interno">
+                                            <tr><td colspan="3" style="text-align:center; color:#64748b;">No hay lotes descargados aún.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ` : ''}
                         </div>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
                         <script>
                             const datosExcel = ${JSON.stringify(datosMostrar)};
                             const tipoVista = '${tipo}';
@@ -729,6 +731,32 @@
                                         fila.style.display = "none";
                                     }
                                 });
+                            }
+
+                            function toggleHistorial() {
+                                const sec = document.getElementById("seccion_historial_lotes");
+                                if (sec.style.display === "block") {
+                                    sec.style.display = "none";
+                                } else {
+                                    sec.style.display = "block";
+                                    cargarHistorialInterno();
+                                }
+                            }
+
+                            function cargarHistorialInterno() {
+                                const historial = (window.opener.historialDescargas || []).filter(h => h.dept === departamento && h.tipo === 'USADOS');
+                                const tbody = document.getElementById("tbl_historial_interno");
+                                if (historial.length === 0) {
+                                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay lotes descargados aún.</td></tr>';
+                                    return;
+                                }
+                                tbody.innerHTML = historial.map((h, idx) => \`
+                                    <tr>
+                                        <td><strong>\${h.fecha}</strong></td>
+                                        <td>\${h.cantidad} vales</td>
+                                        <td><button onclick="window.opener.reDescargarHistorialPorIndice(\${window.opener.historialDescargas.indexOf(h)})" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:6px; font-size:11px; cursor:pointer;">📥 Re-descargar Excel</button></td>
+                                    </tr>
+                                \`).join('');
                             }
 
                             function descargarExcelReal() {
@@ -750,7 +778,7 @@
                                 XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
                                 XLSX.writeFile(workbook, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".xlsx");
                             }
-                        <\/script>
+                        </script>
                     </html>
                 `);
             }
@@ -1001,28 +1029,23 @@
             }
         }
 
-        // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
+        // DESCARGA DE EXCEL REAL (.xlsx) + REGISTRO EN HISTORIAL
         function descargarReporteExcel() {
             if (currentUser.rol !== "admin") return;
             const filtro = document.getElementById("export_filter").value;
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             
             if (filtro === "usados") {
-                // Filtramos solo los usados que NO han sido descargados todavía
                 valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
                 
                 if (valesDept.length === 0) {
                     return alert("No hay nuevos vales usados pendientes por descargar.");
                 }
 
-                // Marcamos cada uno de estos vales como descargados
                 valesDept.forEach(v => {
                     let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
                     if (valeReal) valeReal.descargadoUsado = true;
                 });
-
-                // Guardamos el cambio en la nube y localStorage
-                saveData();
             } else {
                 if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
                 else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
@@ -1047,91 +1070,109 @@
             const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario Vales");
-            XLSX.writeFile(workbook, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.xlsx`);
+            const nombreArchivo = `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.xlsx`;
+            XLSX.writeFile(workbook, nombreArchivo);
+
+            // Guardar en el historial local de lotes
+            const fechaHoraActual = new Date().toLocaleString("es-CO");
+            historialDescargas.unshift({
+                fecha: fechaHoraActual,
+                tipo: filtro.toUpperCase(),
+                cantidad: valesDept.length,
+                dept: currentUser.dept,
+                datosSnapshot: datosFormateados
+            });
+            if (historialDescargas.length > 20) historialDescargas.pop();
+            saveData();
         }
 
-       function renderAdmin() {
-    const s = document.getElementById("search_user").value.toLowerCase();
-    const tbU = document.getElementById("tbl_usuarios"); 
-    tbU.innerHTML = "";
-
-    // 1. Recopilar usuarios únicos combinando la lista de registros y los que han usado vales
-    let mapaPersonal = new Map();
-
-    // Primero agregamos los registrados oficialmente
-    usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
-        mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
-    });
-
-    // Luego agregamos a los que aparecen en los vales usados/asignados pero no estaban en la lista
-    vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
-        if (!mapaPersonal.has(v.usrCc)) {
-            mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
-        }
-    });
-
-    // 2. Dibujar la tabla unificada de personal
-    let personalUnificado = Array.from(mapaPersonal.values());
-    
-    personalUnificado.forEach(u => {
-        if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
-            tbU.innerHTML += `
-                <tr>
-                    <td>${u.nombre}</td>
-                    <td>${u.cc}</td>
-                    <td>
-                        <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
-                    </td>
-                </tr>`;
-        }
-    });
-
-    if (personalUnificado.length === 0) {
-        tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
-    }
-
-    // --- Filtro del Inventario General ---
-    const filtro = document.getElementById("export_filter").value;
-    const tbI = document.getElementById("tbl_inventario"); 
-    tbI.innerHTML = "";
-    
-    let vd = vales.filter(v => v.dept === currentUser.dept);
-    if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
-    else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
-    else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
-    else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
-
-    vd.forEach(v => {
-        let badge = "badge-libre"; 
-        if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
-        else if(v.est === "usado") badge="badge-usado"; 
-        else if(v.est === "cancelado") badge="badge-canc";
-        else if(v.est === "bloqueado") badge="badge-bloqueado";
-        
-        let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
-        
-        if (v.est === "cancelado" || v.est === "libre") {
-            botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
-        }
-        
-        if (v.est === "bloqueado") {
-            botonesAccion += ` <button onclick="liberarValeBloqueado('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Desbloquear / Liberar">♻️ Liberar</button>`;
+        function reDescargarHistorialPorIndice(index) {
+            const item = historialDescargas[index];
+            if (!item) return;
+            const worksheet = XLSX.utils.json_to_sheet(item.datosSnapshot);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
+            XLSX.writeFile(workbook, `Reimpresion_${item.dept.toUpperCase()}_${item.tipo}_${item.fecha.replace(/[/,: ]/g, '_')}.xlsx`);
         }
 
-        if (v.est === "cancelado") {
-            botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
-        }
+        function renderAdmin() {
+            const s = document.getElementById("search_user").value.toLowerCase();
+            const tbU = document.getElementById("tbl_usuarios"); 
+            tbU.innerHTML = "";
 
-        tbI.innerHTML += `
-            <tr>
-                <td><strong>${v.num}</strong></td>
-                <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
-                <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
-                <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
-                <td>${botonesAccion}</td>
-            </tr>`;
-    });
-}
+            let mapaPersonal = new Map();
+
+            usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
+                mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
+            });
+
+            vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
+                if (!mapaPersonal.has(v.usrCc)) {
+                    mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
+                }
+            });
+
+            let personalUnificado = Array.from(mapaPersonal.values());
+            
+            personalUnificado.forEach(u => {
+                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
+                    tbU.innerHTML += `
+                        <tr>
+                            <td>${u.nombre}</td>
+                            <td>${u.cc}</td>
+                            <td>
+                                <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
+                            </td>
+                        </tr>`;
+                }
+            });
+
+            if (personalUnificado.length === 0) {
+                tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
+            }
+
+            // --- Filtro del Inventario General ---
+            const filtro = document.getElementById("export_filter").value;
+            const tbI = document.getElementById("tbl_inventario"); 
+            tbI.innerHTML = "";
+            
+            let vd = vales.filter(v => v.dept === currentUser.dept);
+            if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
+            else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
+            else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
+            else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
+
+            vd.forEach(v => {
+                let badge = "badge-libre"; 
+                if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
+                else if(v.est === "usado") badge="badge-usado"; 
+                else if(v.est === "cancelado") badge="badge-canc";
+                else if(v.est === "bloqueado") badge="badge-bloqueado";
+                
+                let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
+                
+                if (v.est === "cancelado" || v.est === "libre") {
+                    botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
+                }
+                
+                if (v.est === "bloqueado") {
+                    botonesAccion += ` <button onclick="liberarValeBloqueado('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Desbloquear / Liberar">♻️ Liberar</button>`;
+                }
+
+                if (v.est === "cancelado") {
+                    botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
+                }
+
+                tbI.innerHTML += `
+                    <tr>
+                        <td><strong>${v.num}</strong></td>
+                        <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
+                        <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
+                        <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
+                        <td>${botonesAccion}</td>
+                    </tr>`;
+            });
+        }
 
         function render() {
             let titulo = currentUser ? "Asignación de Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1) : "Asignación de Vales";
@@ -1154,7 +1195,6 @@
                     const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
                     document.getElementById("m_asig").innerText = asignadosTotal.length;
                     document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
-                    // Contador de usados solo muestra los que faltan por descargar
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
