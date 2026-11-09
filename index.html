@@ -1062,3 +1062,102 @@
                 if (!mapaPersonal.has(v.usrCc)) {
                     mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc });
                 }
+            });
+
+            let personalUnificado = Array.from(mapaPersonal.values());
+
+            personalUnificado.forEach(u => {
+                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
+                    tbU.innerHTML += `<tr><td>${u.nombre}</td><td>${u.cc}</td><td><button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;">🗑️</button></td></tr>`;
+                }
+            });
+
+            if (personalUnificado.length === 0) {
+                tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
+            }
+
+            const filtro = document.getElementById("export_filter").value;
+            const tbI = document.getElementById("tbl_inventario"); tbI.innerHTML = "";
+            let vd = vales.filter(v => v.dept === currentUser.dept);
+            if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
+            else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
+            else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
+            else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
+
+            vd.forEach(v => {
+                let badge = "badge-libre"; 
+                if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
+                else if(v.est === "usado") badge="badge-usado"; 
+                else if(v.est === "cancelado") badge="badge-canc";
+                else if(v.est === "bloqueado") badge="badge-bloqueado";
+                
+                let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
+                
+                if (v.est === "cancelado" || v.est === "libre") {
+                    botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
+                }
+                
+                if (v.est === "bloqueado") {
+                    botonesAccion += ` <button onclick="liberarValeBloqueado('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Desbloquear / Liberar">♻️ Liberar</button>`;
+                }
+
+                if (v.est === "cancelado") {
+                    botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
+                }
+
+                tbI.innerHTML += `<tr><td><strong>${v.num}</strong></td><td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td><td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td><td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td><td>${botonesAccion}</td></tr>`;
+            });
+        }
+
+        function render() {
+            let titulo = currentUser ? "Asignación de Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1) : "Asignación de Vales";
+            document.getElementById("page_title").innerText = titulo; document.getElementById("header_title_text").innerText = titulo;
+
+            if (!currentUser) {
+                document.getElementById("sec_metrics").style.display = "none"; document.getElementById("sec_auth").style.display = "block"; document.getElementById("sec_main").style.display = "none"; document.getElementById("header_user_info").innerHTML = "";
+            } else {
+                document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
+                const vd = vales.filter(v => v.dept === currentUser.dept);
+                
+                if (currentUser.rol === "admin" && currentUser.dept === "instrumentacion" && currentUser.cc === "1012426957") {
+                    document.getElementById("box_admin_images").style.display = "block";
+                } else {
+                    document.getElementById("box_admin_images").style.display = "none";
+                }
+
+                if (currentUser.rol === "admin") {
+                    document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+                    const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
+                    document.getElementById("m_asig").innerText = asignadosTotal.length;
+                    document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                    document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
+                    document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
+                } else {
+                    document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+                    const misVales = vd.filter(v => v.usrCc === currentUser.cc);
+                    document.getElementById("m_asig").innerText = misVales.length;
+                    document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+                    document.getElementById("m_usados").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "usado").length;
+                    document.getElementById("m_canc").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado").length;
+                }
+                
+                document.getElementById("header_user_info").innerHTML = `<p style="margin:0; font-weight:600;">${currentUser.nombre}</p><p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p><span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>`;
+                
+                if (currentUser.rol === "admin") {
+                    document.getElementById("panel_admin").style.display = "grid"; 
+                    document.getElementById("panel_funcionario").style.display = "none"; 
+                    document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
+                    renderAdmin();
+                } else {
+                    document.getElementById("panel_admin").style.display = "none"; document.getElementById("panel_funcionario").style.display = "block"; document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
+                    const vO = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
+                    const vA = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+                    if (vA) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "block"; document.getElementById("v_code_active").innerText = vA.num; document.getElementById("form_sub_uso").style.display = "none"; document.getElementById("form_sub_canc").style.display = "none"; }
+                    else if (vO) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "block"; document.getElementById("inst_paso_tomado").style.display = "none"; document.getElementById("v_code_obtained").innerText = vO.num; document.getElementById("v_fec_obtained").innerText = vO.fecVenc; }
+                    else { document.getElementById("inst_paso_solicitar").style.display = "block"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "none"; }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
