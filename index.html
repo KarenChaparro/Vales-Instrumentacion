@@ -660,7 +660,7 @@
                             window.onload = function() {
                                 actualizarVentanaPapelera();
                             };
-                        <\/script>
+                        </script>
                     </html>
                 `);
             } else {
@@ -711,7 +711,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
                         <script>
                             const datosExcel = ${JSON.stringify(datosMostrar)};
                             const tipoVista = '${tipo}';
@@ -750,7 +750,7 @@
                                 XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
                                 XLSX.writeFile(workbook, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".xlsx");
                             }
-                        <\/script>
+                        </script>
                     </html>
                 `);
             }
@@ -1008,20 +1008,17 @@
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             
             if (filtro === "usados") {
-                // Filtramos solo los usados que NO han sido descargados todavía
                 valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
                 
                 if (valesDept.length === 0) {
                     return alert("No hay nuevos vales usados pendientes por descargar.");
                 }
 
-                // Marcamos cada uno de estos vales como descargados
                 valesDept.forEach(v => {
                     let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
                     if (valeReal) valeReal.descargadoUsado = true;
                 });
 
-                // Guardamos el cambio en la nube y localStorage
                 saveData();
             } else {
                 if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
@@ -1052,11 +1049,33 @@
 
         function renderAdmin() {
             const s = document.getElementById("search_user").value.toLowerCase();
-            const tbU = document.getElementById("tbl_usuarios"); tbU.innerHTML = "";
+            const tbU = document.getElementById("tbl_usuarios"); 
+            tbU.innerHTML = "";
+
+            // Unificamos la lista de personal registrado con los usuarios encontrados en los vales
+            let mapaPersonal = new Map();
+
             usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
-                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s))
-                    tbU.innerHTML += `<tr><td>${u.nombre}</td><td>${u.cc}</td><td><button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;">🗑️</button></td></tr>`;
+                mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc });
             });
+
+            vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
+                if (!mapaPersonal.has(v.usrCc)) {
+                    mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc });
+                }
+            });
+
+            let personalUnificado = Array.from(mapaPersonal.values());
+
+            personalUnificado.forEach(u => {
+                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
+                    tbU.innerHTML += `<tr><td>${u.nombre}</td><td>${u.cc}</td><td><button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;">🗑️</button></td></tr>`;
+                }
+            });
+
+            if (personalUnificado.length === 0) {
+                tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
+            }
 
             const filtro = document.getElementById("export_filter").value;
             const tbI = document.getElementById("tbl_inventario"); tbI.innerHTML = "";
@@ -1112,7 +1131,6 @@
                     const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
                     document.getElementById("m_asig").innerText = asignadosTotal.length;
                     document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
-                    // Contador de usados solo muestra los que faltan por descargar
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
