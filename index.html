@@ -1,1221 +1,2280 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title id="page_title">Asignación de Vales</title>
+
     <style>
+
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
         body { background: #f1f5f9; padding: 15px; max-width: 1200px; margin: 0 auto; color: #334155; }
+
         
+
         header { 
+
            background: #ffffff; 
+
             background-size: cover; 
+
             background-position: center; 
+
             background-repeat: no-repeat;
+
             position: relative;
+
             padding: 28px 34px; 
+
             border-radius: 14px; 
+
             display: flex; 
+
             justify-content: space-between; 
+
             align-items: center; 
+
             margin-bottom: 25px; 
+
             box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+
             overflow: hidden;
+
             min-height: 150px;
+
         }
+
+
 
         @media (max-width: 768px) {
+
             header { 
+
                 flex-direction: row; 
+
                 align-items: center; 
+
                 gap: 10px;
+
                 padding: 15px;
+
                 background-size: cover; 
+
             }
+
             .logo-preview {
+
                 max-height: 55px;
+
                 max-width: 70px;
+
             }
+
             #header_user_info {
+
                 width: auto;
+
                 text-align: right !important;
+
                 border-top: none;
+
                 padding-top: 0;
+
                 font-size: 11px;
+
             }
+
         }
+
+
 
         .header-overlay {
+
             position: absolute;
+
             top: 0; left: 0; right: 0; bottom: 0;
+
             background: rgba(255, 255, 255, 0.40); 
+
             backdrop-filter: blur(0.5px);
+
             z-index: 1;
+
             display: block;
+
         }
 
+
+
         .logo-container { display: flex; align-items: center; gap: 18px; width: 100%; z-index: 2; position: relative; flex-wrap: wrap; }
+
         
+
         .logo-preview { 
+
             max-height: 80px;  
+
             max-width: 180px;   
+
             width: auto;
+
             height: auto;
+
             object-fit: contain; 
+
             border-radius: 8px; 
+
             display: none; 
+
             background: white;
+
             padding: 3px;
+
             box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+
         }
+
         
+
         .header-title-box { flex-grow: 1; }
+
         .header-title-box h1 { font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.9); }
+
         .header-title-box p { font-size: 12px; font-weight: 600; color: #1e293b; margin: 4px 0 0 0; text-shadow: 0 1px 2px rgba(255,255,255,0.9); }
+
+
 
         #header_user_info { z-index: 2; position: relative; }
 
+
+
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 
+
+
         .panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+
         h1, h2, h3 { margin: 0 0 12px 0; color: #0f172a; }
+
         
+
         input, select, textarea, button { width: 100%; padding: 11px 14px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
+
         input:focus, select:focus, textarea:focus { outline: none; border-color: #8b1a2b; box-shadow: 0 0 0 2px #fbcfe8; }
 
+
+
         button { background: #8b1a2b; color: white; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+
         button:hover { background: #6e1422; }
+
         
+
         .btn-sec { background: #10b981; } .btn-sec:hover { background: #059669; }
+
         .btn-danger { background: #ef4444; } .btn-danger:hover { background: #dc2626; }
+
         .btn-neutral { background: #64748b; } .btn-neutral:hover { background: #475569; }
+
         .btn-warning { background: #f59e0b; color: white; } .btn-warning:hover { background: #d97706; }
 
+
+
         .btn-pin-style { 
+
             background: #8b1a2b; 
+
             color: white; 
+
             border-left: 5px solid #5d111d; 
+
             font-size: 13px; 
+
             font-weight: 600; 
+
             text-align: center; 
+
             padding: 12px; 
+
             cursor: pointer; 
+
             margin: 0; 
+
             border-radius: 8px; 
+
             display: block; 
+
             transition: all 0.2s;
+
         }
+
         .btn-pin-style:hover { background: #6e1422; }
+
+
 
         .dept-tag { font-size: 12px; font-weight: bold; padding: 6px 12px; background: #8b1a2b; color: #ffffff; border-radius: 6px; }
 
+
+
         .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
         @media (max-width: 640px) { .metrics { grid-template-columns: 1fr 1fr; } }
+
         
+
         .card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+
         .card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
         .card h3 { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
         .card p { font-size: 24px; font-weight: bold; margin: 0; }
 
+
+
         .card-libre { border-top: 5px solid #10b981; } .card-libre p { color: #059669; }
+
         .card-asig { border-top: 5px solid #2563eb; } .card-asig p { color: #1d4ed8; }
+
         .card-usado { border-top: 5px solid #ef4444; } .card-usado p { color: #dc2626; }
+
         .card-canc { border-top: 5px solid #f59e0b; } .card-canc p { color: #d97706; }
 
+
+
         .vale-box { background: #0f172a; color: #38bdf8; font-size: 24px; text-align: center; padding: 15px; font-family: monospace; font-weight: bold; border-radius: 10px; margin: 15px 0; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
         .btn-copy { background: #334155; color: white; font-size: 13px; padding: 8px 16px; width: auto; margin: 0; border-radius: 6px; }
 
+
+
         .table-responsive { width: 100%; overflow-x: auto; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; min-width: 480px; }
+
         th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+
         th { background: #f8fafc; color: #475569; font-weight: 600; }
 
+
+
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+
         .badge-libre { background: #dcfce7; color: #166534; }
+
         .badge-asig { background: #dbeafe; color: #1e40af; }
+
         .badge-usado { background: #fee2e2; color: #991b1b; }
+
         .badge-canc { background: #fef3c7; color: #92400e; }
+
         .badge-bloqueado { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
+
+
         .tab-btn { width: auto; padding: 8px 16px; margin-right: 8px; background: #e2e8f0; color: #475569; display: inline-block; border-radius: 6px; }
+
         .tab-btn.active { background: #8b1a2b; color: white; }
+
         
+
         #loading_overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #8b1a2b; font-size: 18px; }
+
     </style>
+
 </head>
+
 <body>
+
+
 
     <div id="loading_overlay">🔄 Sincronizando datos en la nube...</div>
 
+
+
     <header id="main_header">
+
         <div id="header_overlay" class="header-overlay"></div>
+
         <div class="logo-container">
+
             <img id="img_logo" class="logo-preview" alt="Logo Institucional">
+
             <div class="header-title-box">
+
                 <h1 id="header_title_text">Asignación de Vales</h1>
+
                 <p>Sistema de Trazabilidad y Control de Vales</p>
+
             </div>
+
         </div>
+
         <div id="header_user_info" style="text-align:right; min-width:200px;"></div>
+
     </header>
 
+
+
     <div id="sec_metrics" class="metrics" style="display:none;">
+
         <div class="card card-libre" onclick="abrirPestanaDetalle('libres')">
+
             <h3>Disponibles</h3>
+
             <p id="m_libres">0</p>
+
         </div>
+
         <div class="card card-asig" onclick="abrirPestanaDetalle('asignados')">
+
             <h3>Asignados</h3>
+
             <p id="m_asig">0</p>
+
             <div style="font-size:11px; font-weight:600; color:#2563eb; margin-top:4px;" id="m_asig_curso">0 en curso</div>
+
         </div>
+
         <div class="card card-usado" onclick="abrirPestanaDetalle('usados')">
+
             <h3>Usados</h3>
+
             <p id="m_usados">0</p>
+
         </div>
+
         <div class="card card-canc" onclick="abrirPestanaDetalle('cancelados')">
+
             <h3>Cancelados</h3>
+
             <p id="m_canc">0</p>
+
         </div>
+
     </div>
+
+
 
     <div id="sec_auth" class="panel" style="max-width: 480px; margin: 20px auto;">
+
         <div style="display:flex; margin-bottom:15px;">
+
             <button class="tab-btn active" id="tab_login" onclick="switchAuthTab('login')">Ingresar</button>
+
             <button class="tab-btn" id="tab_reg" onclick="switchAuthTab('reg')">Registrarse</button>
+
         </div>
+
+
 
         <div id="form_login">
+
             <h2>Ingresar al Sistema</h2>
+
             <label style="font-size:12px;">Selecciona tu Departamento:</label>
+
             <select id="l_dept">
+
                 <option value="instrumentacion">Instrumentación</option>
+
                 <option value="enfermeriaICV/CIE">EnfermeríaICV/CIE</option>
+
             </select>
+
             <label style="font-size:12px;">Número de Cédula:</label>
+
             <input type="text" id="l_cc" placeholder="Ingresa tu número de cédula">
+
             <div id="box_pin_admin" style="display:none;">
+
                 <label style="font-size:12px; color:#8b1a2b; font-weight:bold;">PIN de Seguridad Administradora:</label>
+
                 <input type="password" id="l_pin" placeholder="••••" maxlength="8">
+
             </div>
+
             <button onclick="login()">Ingresar</button>
+
         </div>
+
+
 
         <div id="form_reg" style="display:none;">
+
             <h2>Registro de Personal</h2>
+
             <label style="font-size:12px;">Departamento:</label>
+
             <select id="r_dept">
+
                 <option value="instrumentacion">Instrumentación</option>
+
                 <option value="enfermeriaICV/CIE">EnfermeríaICV/CIE</option>
+
             </select>
+
             <label style="font-size:12px;">Nombre Completo:</label>
+
             <input type="text" id="r_name" placeholder="Ej: Maximiliano Rios">
+
             <label style="font-size:12px;">Número de Cédula:</label>
+
             <input type="text" id="r_cc" placeholder="Ej: 1098765432">
+
             <button class="btn-sec" onclick="register()">Crear Cuenta</button>
+
         </div>
+
     </div>
+
+
 
     <div id="sec_main" style="display:none;">
+
         <div id="panel_funcionario" class="panel" style="display:none;">
+
             <div style="display:flex; justify-content:space-between; align-items:center;">
+
                 <h2>🚕 Solicitud de Vales de Taxi</h2>
+
                 <span id="tag_dept_user" class="dept-tag">---</span>
+
             </div>
+
+
 
             <div id="inst_paso_solicitar">
+
                 <p>Presiona el botón para obtener un vale libre:</p>
+
                 <button onclick="obtenerValeLibre()" class="btn-sec" style="font-size:16px; padding:15px;">🎫 Obtener Vale Libre</button>
+
             </div>
+
+
 
             <div id="inst_paso_obtener" style="display:none;">
+
                 <p>Se te ha asignado el siguiente vale libre:</p>
+
                 <div class="vale-box">
+
                     <span id="v_code_obtained">---</span>
+
                     <button class="btn-copy" onclick="copiarCodigoVale('obtained')">📋 Copiar</button>
+
                 </div>
+
                 <p style="font-size:13px; color:#64748b;">Fecha de Vencimiento: <strong id="v_fec_obtained">---</strong></p>
+
                 <button onclick="tomarVale()" style="font-size:16px; padding:14px; margin-top:10px;">✋ Tomar Vale</button>
+
             </div>
+
+
 
             <div id="inst_paso_tomado" style="display:none;">
+
                 <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 15px;">
+
                     🔒 Tienes un vale activo en curso. Debes registrar su resultado.
+
                 </div>
+
                 <div class="vale-box">
+
                     <span id="v_code_active">---</span>
+
                     <button class="btn-copy" onclick="copiarCodigoVale('active')">📋 Copiar</button>
+
                 </div>
+
                 <h3 style="margin-top:20px;">¿Qué ocurrió con el taxi?</h3>
+
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+
                     <button onclick="mostrarOpcion('uso')" class="btn-sec">✅ Usó el vale</button>
+
                     <button onclick="accionNoUsoVale()" class="btn-neutral">↩️ No lo usó</button>
+
                     <button onclick="mostrarOpcion('canc')" class="btn-danger">🚫 Cancelado</button>
+
                 </div>
+
+
 
                 <div id="form_sub_uso" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+
                     <label style="font-size:13px; font-weight:600;">Ingresa el valor total pagado ($ COP):</label>
+
                     <input type="number" id="v_valor_servicio" placeholder="Ej: 22000">
+
                     <button onclick="confirmarUso()">Confirmar Registro</button>
+
                 </div>
+
+
 
                 <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+
                     <label style="font-size:13px; font-weight:600;">Motivo de cancelación:</label>
+
                     <select id="v_motivo_cancelacion">
+
                         <option value="Vale inactivo">Vale inactivo / Rechazado</option>
+
                         <option value="No necesité el taxi">No necesité el taxi</option>
+
                         <option value="Cirugía cancelada">Cirugía cancelada</option>
+
                         <option value="Otro motivo">Otro motivo</option>
+
                     </select>
+
                     <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
+
                 </div>
+
             </div>
+
         </div>
+
+
 
         <div id="panel_admin" class="grid" style="display:none;">
+
             <div>
+
                 <div class="panel">
+
                     <div style="display:flex; justify-content:space-between; align-items:center;">
+
                         <h2>➕ Agregar Vales</h2>
+
                         <span id="tag_dept_admin" class="dept-tag">---</span>
+
                     </div>
+
                     <p style="font-size:11px; color:#64748b; margin-bottom:8px;">Pega los vales de 12 dígitos con su fecha de vencimiento.</p>
+
                     <textarea id="add_bulk_input" rows="5" placeholder="123456789012 2026-12-31 07:50:00"></textarea>
+
                     <button onclick="agregarValesMasivos()">Cargar Vales al Inventario</button>
+
                 </div>
+
+
 
                 <div class="panel" id="panel_config_admin">
+
                     <h2>⚙️ Configuración y Seguridad</h2>
+
                     <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+
                         <button onclick="cambiarPinAdmin()" class="btn-pin-style">🔑 Cambiar mi PIN</button>
+
                         
+
                         <div id="box_admin_images" style="display:none; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-top:5px;">
+
                             <p style="font-size:13px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:8px;">🛠️ Panel Exclusivo: Configurar Imágenes Institucionales</p>
+
                             
+
                             <label style="font-size:12px; font-weight:bold; color:#0f172a;">🖼️ Cambiar Logo / Perfil:</label>
+
                             <input type="file" id="input_logo_file" accept="image/*" style="margin:4px 0 4px 0; font-size:12px;" onchange="subirImagenPersonalizada('logo')">
+
                             <button onclick="eliminarImagenPersonalizada('logo')" class="btn-danger" style="margin:0 0 10px 0; padding:6px; font-size:12px;">🗑️ Eliminar Logo Actual</button>
 
+
+
                             <label style="font-size:12px; font-weight:bold; color:#0f172a;">🌄 Cambiar Fondo de Portada:</label>
+
                             <input type="file" id="input_bg_file" accept="image/*" style="margin:4px 0 4px 0; font-size:12px;" onchange="subirImagenPersonalizada('bg')">
+
                             <button onclick="eliminarImagenPersonalizada('bg')" class="btn-danger" style="margin:0 0 4px 0; padding:6px; font-size:12px;">🗑️ Eliminar Fondo Actual</button>
+
                         </div>
+
                     </div>
+
                 </div>
 
+
+
                 <div class="panel">
+
                     <h2>👥 Personal Registrado</h2>
+
                     <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
+
                     <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
+
                         <table>
+
                             <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+
                             <tbody id="tbl_usuarios"></tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
+
 
             <div>
+
                 <div class="panel">
+
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+
                         <h2>📊 Inventario General</h2>
+
                         <div style="display:flex; gap:5px; align-items:center;">
+
                             <select id="export_filter" style="width:auto; margin:0; padding:6px; font-size:12px;" onchange="renderAdmin()">
+
                                 <option value="todos">Todos los vales</option>
+
                                 <option value="usados">Solo vales usados</option>
+
                                 <option value="libres">Solo vales disponibles</option>
+
                                 <option value="asignados">Solo vales asignados (Historial)</option>
+
                                 <option value="cancelados">Solo vales cancelados</option>
+
                             </select>
+
                             <button onclick="descargarReporteExcel()" style="width:auto; font-size:12px; margin:0; padding:8px 12px;">📊 Descargar Excel</button>
+
                         </div>
+
                     </div>
+
                     <div style="max-height:520px; overflow-y:auto;" class="table-responsive">
+
                         <table>
+
                             <thead>
+
                                 <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha Carga/Uso</th><th>Acción</th></tr>
+
                             </thead>
+
                             <tbody id="tbl_inventario"></tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
+
+
     <!-- Librería SheetJS (XLSX) para generar Excel real (.xlsx) -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+
+
     <script>
+
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_XleEVPYzziF2NONzsyQOmYvDEP0Sf6lM2h3oen8O_8Bod4_4Fi9rk0LKGsS-cMq0/exec";
 
+
+
         const ADMIN_ROLES = { 
+
             "1012426957": "instrumentacion", 
+
             "1098789395": "enfermeriaICV/CIE"
+
         };
+
         
+
         let adminPins = { "1012426957": "1234", "1098789395": "1234" };
+
         let vales = [];
+
         let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
+
         
+
         let usuarios = [
+
             { cc: "1012426957", nombre: "Administradora Instrumentación", dept: "instrumentacion", rol: "admin" },
+
             { cc: "1098789395", nombre: "Administradora EnfermeríaICV/CIE", dept: "enfermeriaICV/CIE", rol: "admin" }
+
         ];
+
         let currentUser = JSON.parse(localStorage.getItem("vi_session")) || null;
 
+
+
         document.addEventListener("DOMContentLoaded", () => {
+
             limpiarPapeleraAutomatica();
+
             aplicarImagenesPersonalizadas();
+
             document.getElementById("l_cc").addEventListener("input", function() {
+
                 document.getElementById("box_pin_admin").style.display = ADMIN_ROLES[this.value.trim()] ? "block" : "none";
+
             });
+
             cargarDatosNube();
+
         });
 
+
+
         function limpiarPapeleraAutomatica() {
+
             const ahora = new Date().getTime();
+
             const dosDiasMs = 2 * 24 * 60 * 60 * 1000;
+
             const antes = papeleraLibres.length;
+
             papeleraLibres = papeleraLibres.filter(item => {
+
                 return (ahora - item.timestampEliminacion) < dosDiasMs;
+
             });
+
             if (papeleraLibres.length !== antes) {
+
                 localStorage.setItem("vi_papelera_libres", JSON.stringify(papeleraLibres));
+
             }
+
         }
+
+
 
         function cargarDatosNube() {
+
             document.getElementById("loading_overlay").style.display = "flex";
+
             fetch(SCRIPT_URL + "?action=getData", { method: "GET", redirect: "follow" })
+
             .then(res => res.json())
+
             .then(data => {
+
                 if (data.vales && data.vales.length > 0) vales = data.vales;
+
                 if (data.usuarios && data.usuarios.length > 0) usuarios = data.usuarios;
+
                 if (data.adminPins && Object.keys(data.adminPins).length > 0) adminPins = data.adminPins;
+
                 document.getElementById("loading_overlay").style.display = "none";
+
                 render();
+
             })
+
             .catch(() => {
+
                 document.getElementById("loading_overlay").style.display = "none";
+
                 vales = JSON.parse(localStorage.getItem("vi_vales")) || [];
+
                 render();
+
             });
+
         }
+
+
 
         function saveData() {
+
             document.getElementById("loading_overlay").style.display = "flex";
+
             document.getElementById("loading_overlay").innerText = "Guardando cambios en la nube...";
+
             
+
             localStorage.setItem("vi_vales", JSON.stringify(vales));
+
             localStorage.setItem("vi_usuarios", JSON.stringify(usuarios));
+
             localStorage.setItem("vi_session", JSON.stringify(currentUser));
+
             localStorage.setItem("vi_admin_pins", JSON.stringify(adminPins));
+
             localStorage.setItem("vi_papelera_libres", JSON.stringify(papeleraLibres));
 
+
+
             fetch(SCRIPT_URL, {
+
                 method: "POST",
+
                 mode: "no-cors",
+
                 headers: { "Content-Type": "application/json" },
+
                 body: JSON.stringify({ action: "saveData", vales: vales, usuarios: usuarios, adminPins: adminPins })
+
             }).then(() => {
+
                 document.getElementById("loading_overlay").style.display = "none";
+
                 document.getElementById("loading_overlay").innerText = "🔄 Sincronizando datos en la nube...";
+
                 render();
+
             }).catch(() => {
+
                 document.getElementById("loading_overlay").style.display = "none";
+
                 render();
+
             });
+
         }
+
+
 
         function aplicarImagenesPersonalizadas() {
+
             const savedLogo = localStorage.getItem("vi_custom_logo");
+
             const img = document.getElementById("img_logo");
+
             if (savedLogo) {
+
                 img.src = savedLogo;
+
                 img.style.display = "block";
+
             } else {
+
                 img.src = "https://i.ibb.co/60qfYK9w/logo.jpg";
+
                 img.style.display = "block";
+
             }
+
+
 
             const savedBg = localStorage.getItem("vi_custom_bg");
+
             const header = document.getElementById("main_header");
+
             if (savedBg) {
+
                 header.style.backgroundImage = `url(${savedBg})`;
+
             } else {
+
                 header.style.backgroundImage = `url('https://i.ibb.co/zHxTG2jk/fondo.jpg')`;
+
             }
+
             document.getElementById("header_overlay").style.display = "block";
+
         }
+
+
 
         function subirImagenPersonalizada(tipo) {
+
             if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
+
                 alert("⛔ Acceso denegado. Solo la Administradora de Instrumentación puede modificar las imágenes institucionales.");
+
                 return;
+
             }
+
+
 
             const inputId = tipo === 'logo' ? 'input_logo_file' : 'input_bg_file';
+
             const fileInput = document.getElementById(inputId);
+
             
+
             if (fileInput.files && fileInput.files[0]) {
+
                 const reader = new FileReader();
+
                 reader.onload = function(e) {
+
                     const base64Image = e.target.result;
+
                     if (tipo === 'logo') {
+
                         localStorage.setItem("vi_custom_logo", base64Image);
+
                         alert("✅ ¡Logo / Perfil actualizado con éxito!");
+
                     } else {
+
                         localStorage.setItem("vi_custom_bg", base64Image);
+
                         alert("✅ ¡Fondo de portada actualizado con éxito!");
+
                     }
+
                     aplicarImagenesPersonalizadas();
+
                 };
+
                 reader.readAsDataURL(fileInput.files[0]);
+
             }
+
         }
+
+
 
         function eliminarImagenPersonalizada(tipo) {
+
             if (!currentUser || currentUser.cc !== "1012426957" || currentUser.dept !== "instrumentacion") {
+
                 alert("⛔ Acceso denegado.");
+
                 return;
+
             }
+
+
 
             if (tipo === 'logo') {
+
                 if (confirm("¿Estás segura de eliminar el logo personalizado y volver al predeterminado?")) {
+
                     localStorage.removeItem("vi_custom_logo");
+
                     document.getElementById("input_logo_file").value = "";
+
                     alert("🗑️ Logo eliminado con éxito.");
+
                 }
+
             } else {
+
                 if (confirm("¿Estás segura de eliminar el fondo de portada personalizado y volver al predeterminado?")) {
+
                     localStorage.removeItem("vi_custom_bg");
+
                     document.getElementById("input_bg_file").value = "";
+
                     alert("🗑️ Fondo eliminado con éxito.");
+
                 }
+
             }
+
             aplicarImagenesPersonalizadas();
+
         }
+
+
 
         function abrirPestanaDetalle(tipo) {
+
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
+
             let titulo = "Detalles de Vales";
+
             let datosMostrar = [];
+
             let esAdmin = (currentUser.rol === "admin");
 
+
+
             if (esAdmin) {
+
                 if (tipo === 'libres') {
+
                     titulo = "Vales Disponibles";
+
                     datosMostrar = valesDept.filter(v => v.est === "libre");
+
                 } else if (tipo === 'asignados') {
+
                     titulo = "Vales Asignados";
+
                     datosMostrar = valesDept.filter(v => v.est !== "libre");
+
                 } else if (tipo === 'usados') {
+
                     titulo = "Vales Usados (Nuevos sin descargar)";
+
                     datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
+
                 } else if (tipo === 'cancelados') {
+
                     titulo = "Vales Cancelados";
+
                     datosMostrar = valesDept.filter(v => v.est === "cancelado");
+
                 }
+
             } else {
+
                 if (tipo === 'libres') {
+
                     titulo = "Vales Disponibles";
+
                     datosMostrar = valesDept.filter(v => v.est === "libre");
+
                 } else if (tipo === 'asignados') {
+
                     titulo = "Mis Vales Asignados / En Curso";
+
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc);
+
                 } else if (tipo === 'usados') {
+
                     titulo = "Mis Vales Usados";
+
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "usado");
+
                 } else if (tipo === 'cancelados') {
+
                     titulo = "Mis Vales Cancelados";
+
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado");
+
                 }
+
             }
+
+
 
             const nuevaVentana = window.open("", "_blank");
+
             
+
             if (tipo === 'libres') {
+
                 nuevaVentana.document.write(`
+
                     <!DOCTYPE html>
+
                     <html lang="es">
+
                     <head>
+
                         <meta charset="UTF-8">
+
                         <title>${titulo}</title>
+
                         <style>
+
                             body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
+
                             .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto; }
+
                             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
+
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
                             .btn-danger-all { background: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-bottom: 10px; }
+
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
+
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
+
                             .papelera-box { margin-top: 30px; background: #fff1f2; border: 1px dashed #f43f5e; padding: 15px; border-radius: 10px; }
+
                             .papelera-box h3 { color: #be123c; margin-top: 0; font-size: 16px; }
+
                         </style>
+
                     </head>
+
                     <body>
+
                         <div class="container">
+
                             <div class="header">
+
                                 <h1>${titulo} (<span id="contador_libres">${datosMostrar.length}</span>)</h1>
+
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
+
                             </div>
+
                             
+
                             ${esAdmin ? '<button class="btn-danger-all" onclick="window.opener.eliminarTodosLibresGlobal(); actualizarVentanaPapelera();">🗑️ Eliminar todos los vales libres</button>' : ''}
+
                             
+
                             <input type="text" id="filtro_libres" placeholder="🔍 Buscar por número de vale..." onkeyup="filtrarLibres()">
+
                             
+
                             <table>
+
                                <thead>
+
                                     <tr><th>Nº de Vale</th><th>Estado</th><th>Fecha Carga</th><th>Vencimiento</th> ${esAdmin ? '<th>Acción</th>' : ''}</tr>
+
                                 </thead>
+
                                 <tbody id="tabla_libres_body">
+
                                     ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>' : ''}
+
                                     ${datosMostrar.map(v => `
+
                                         <tr class="fila-vale" data-num="${v.num}">
+
                                             <td><strong>${v.num}</strong></td>
+
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
+
                                             <td>${v.fechaCarga || '---'}</td>
+
                                             <td>${v.fecVenc || '---'}</td>
+
                                             ${esAdmin ? '<td><button onclick="window.opener.eliminarValeLibreGlobal(\''+v.num+'\'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>' : ''}
+
                                         </tr>
+
                                     `).join('')}
+
                                 </tbody>
+
                             </table>
+
+
 
                             ${esAdmin ? `
+
                                 <div class="papelera-box">
+
                                     <h3>🗑️ Papelera de Vales Libres (<span id="contador_papelera">0</span>)</h3>
+
                                     <p style="font-size:12px; color:#881337; margin-bottom:10px;">Los vales eliminados se borrarán por completo de forma automática después de 2 días. Puedes restaurarlos aquí:</p>
+
                                     <table>
+
                                         <thead>
+
                                             <tr><th>Nº de Vale</th><th>Vencimiento</th><th>Eliminado el</th><th>Acción</th></tr>
+
                                         </thead>
+
                                         <tbody id="tabla_papelera_body">
+
                                             <tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>
+
                                         </tbody>
+
                                     </table>
+
                                 </div>
+
                             ` : ''}
+
                         </div>
+
                         
+
                         <script>
+
                             function filtrarLibres() {
+
                                 const texto = document.getElementById("filtro_libres").value.toLowerCase();
+
                                 const filas = document.querySelectorAll(".fila-vale");
+
                                 let visibles = 0;
+
                                 filas.forEach(fila => {
+
                                     const numeroVale = fila.querySelector("strong").innerText.toLowerCase();
+
                                     if (numeroVale.includes(texto)) {
+
                                         fila.style.display = "";
+
                                         visibles++;
+
                                     } else {
+
                                         fila.style.display = "none";
+
                                     }
+
                                 });
+
                                 document.getElementById("contador_libres").innerText = visibles;
+
                             }
+
+
 
                             function actualizarVentanaPapelera() {
+
                                 const valesActuales = window.opener.vales.filter(v => v.dept === '${currentUser.dept}' && v.est === 'libre');
+
                                 document.getElementById("contador_libres").innerText = valesActuales.length;
+
                                 
+
                                 const tbodyLibres = document.getElementById("tabla_libres_body");
+
                                 if(valesActuales.length === 0) {
+
                                     tbodyLibres.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>';
+
                                 } else {
+
                                     tbodyLibres.innerHTML = valesActuales.map(v => \`
+
                                         <tr class="fila-vale" data-num="\${v.num}">
+
                                             <td><strong>\${v.num}</strong></td>
+
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
+
                                             <td>\${v.fechaCarga || '---'}</td>
+
                                             <td>\${v.fecVenc || '---'}</td>
+
                                             <td><button onclick="window.opener.eliminarValeLibreGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>
+
                                         </tr>
+
                                     \`).join('');
+
                                 }
+
+
 
                                 const papeleraActual = (window.opener.papeleraLibres || []).filter(item => item.dept === '${currentUser.dept}');
+
                                 document.getElementById("contador_papelera").innerText = papeleraActual.length;
+
                                 const tbodyPapelera = document.getElementById("tabla_papelera_body");
+
                                 if(papeleraActual.length === 0) {
+
                                     tbodyPapelera.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
+
                                 } else {
+
                                     tbodyPapelera.innerHTML = papeleraActual.map(v => \`
+
                                         <tr>
+
                                             <td><strong>\${v.num}</strong></td>
+
                                             <td>\${v.fecVenc || '---'}</td>
+
                                             <td>\${v.fechaEliminacion || '---'}</td>
+
                                             <td><button onclick="window.opener.restaurarValeGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
+
                                         </tr>
+
                                     \`).join('');
+
                                 }
+
                             }
+
+
 
                             window.onload = function() {
+
                                 actualizarVentanaPapelera();
+
                             };
-                        </script>
+
+                        <\/script>
+
                     </html>
+
                 `);
+
             } else {
-                const esUsados = (tipo === 'usados' && esAdmin);
-                
-                let htmlContenido = `
+
+                nuevaVentana.document.write(`
+
                     <!DOCTYPE html>
+
                     <html lang="es">
+
                     <head>
+
                         <meta charset="UTF-8">
+
                         <title>${titulo}</title>
+
                         <style>
+
                             body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
-                            .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1050px; margin: 0 auto; }
+
+                            .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
+
                             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
+
                             .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
+
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
+
                         </style>
+
                     </head>
+
                     <body>
+
                         <div class="container">
+
                             <div class="header">
+
                                 <h1>${titulo}</h1>
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+                                <div style="display:flex; gap:10px;">
+
                                     ${esAdmin ? '<button class="btn-excel" onclick="descargarExcelReal()">📊 Descargar Excel (.xlsx)</button>' : ''}
+
                                     <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
+
                                 </div>
+
                             </div>
-                            
+
                             <input type="text" id="filtro_general" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarGeneral()">
-                            
+
                             <table>
+
                                 <thead>
-                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th> ${esAdmin ? '<th>Acción</th>' : ''}</tr>
+
+                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th></tr>
+
                                 </thead>
+
                                 <tbody id="tabla_general_body">
-                                    ${datosMostrar.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
+
+                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
+
                                     ${datosMostrar.map(v => `
+
                                         <tr class="fila-general">
+
                                             <td><strong>${v.num}</strong></td>
+
                                             <td>${v.est.toUpperCase()}</td>
+
                                             <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
+
                                             <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
+
                                             <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
-                                            ${esAdmin ? '<td><button onclick="window.opener.editarValeAdmin(\''+v.num+'\'); location.reload();" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;" title="Editar o Completar">✏️ Editar</button></td>' : ''}
+
                                         </tr>
+
                                     `).join('')}
+
                                 </tbody>
+
                             </table>
+
                         </div>
 
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+
                         <script>
+
                             const datosExcel = ${JSON.stringify(datosMostrar)};
+
                             const tipoVista = '${tipo}';
+
                             const departamento = '${currentUser.dept}';
+
                             const esAdmin = ${esAdmin};
 
+
+
                             function filtrarGeneral() {
+
                                 const texto = document.getElementById("filtro_general").value.toLowerCase();
+
                                 const filas = document.querySelectorAll(".fila-general");
+
                                 filas.forEach(fila => {
+
                                     const contenido = fila.innerText.toLowerCase();
+
                                     if (contenido.includes(texto)) {
+
                                         fila.style.display = "";
+
                                     } else {
+
                                         fila.style.display = "none";
+
                                     }
+
                                 });
+
                             }
+
+
 
                             function descargarExcelReal() {
-                                if(!esAdmin || datosExcel.length === 0) return;
-                                const datosFormateados = datosExcel.map(v => ({
-                                    "Número de Vale": v.num,
-                                    "Vencimiento": v.fecVenc,
-                                    "Fecha Carga": v.fechaCarga || '',
-                                    "Estado": v.est,
-                                    "Departamento": v.dept,
-                                    "Funcionario": v.usrNombre || '',
-                                    "Cédula": v.usrCc || '',
-                                    "Fecha y Hora": v.fechaHora || '',
-                                    "Valor COP": v.valor ? Number(v.valor) : '',
-                                    "Motivo / Detalle": v.motivo || ''
-                                }));
-                                const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-                                const workbook = XLSX.utils.book_new();
-                                XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
-                                XLSX.writeFile(workbook, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".xlsx");
-                            }
-                        </script>
-                    </html>
-                `;
 
-                nuevaVentana.document.write(htmlContenido);
+                                if(!esAdmin || datosExcel.length === 0) return;
+
+                                const datosFormateados = datosExcel.map(v => ({
+
+                                    "Número de Vale": v.num,
+
+                                    "Vencimiento": v.fecVenc,
+
+                                    "Fecha Carga": v.fechaCarga || '',
+
+                                    "Estado": v.est,
+
+                                    "Departamento": v.dept,
+
+                                    "Funcionario": v.usrNombre || '',
+
+                                    "Cédula": v.usrCc || '',
+
+                                    "Fecha y Hora": v.fechaHora || '',
+
+                                    "Valor COP": v.valor ? Number(v.valor) : '',
+
+                                    "Motivo / Detalle": v.motivo || ''
+
+                                }));
+
+                                const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
+
+                                const workbook = XLSX.utils.book_new();
+
+                                XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
+
+                                XLSX.writeFile(workbook, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".xlsx");
+
+                            }
+
+                        <\/script>
+
+                    </html>
+
+                `);
+
             }
+
             nuevaVentana.document.close();
+
         }
+
+
 
         // FUNCIONES GLOBALES DE PAPELERA Y GESTIÓN
+
         function eliminarValeLibreGlobal(num) {
+
             if(confirm("¿Enviar el vale " + num + " a la papelera? Se borrará automáticamente en 2 días.")) {
+
                 let idx = vales.findIndex(v => v.num === num && v.dept === currentUser.dept && v.est === 'libre');
+
                 if(idx !== -1) {
+
                     let eliminado = vales.splice(idx, 1)[0];
+
                     eliminado.timestampEliminacion = new Date().getTime();
+
                     eliminado.fechaEliminacion = new Date().toLocaleString("es-CO");
+
                     papeleraLibres.push(eliminado);
+
                     saveData();
+
                 }
+
             }
+
         }
 
-        function editarValeAdmin(num) {
-            let v = vales.find(item => item.num === num && item.dept === currentUser.dept);
-            if (!v) return alert("Vale no encontrado.");
 
-            let nuevoEstado = prompt(`Editando Vale: ${v.num}\nEstado actual: ${v.est.toUpperCase()}\nFuncionario actual: ${v.usrNombre || 'Ninguno'}\nValor actual: ${v.valor || '0'}\n\nIngresa el nuevo estado (libre, asignado, usado o cancelado):`, v.est);
-            
-            if (!nuevoEstado) return;
-            nuevoEstado = nuevoEstado.trim().toLowerCase();
-
-            if (!['libre', 'asignado', 'obtenido', 'usado', 'cancelado'].includes(nuevoEstado)) {
-                return alert("Estado no válido. Debe ser: libre, asignado, usado o cancelado.");
-            }
-
-            if (nuevoEstado === 'usado') {
-                let nuevoValor = prompt("Ingresa el valor total pagado ($ COP):", v.valor || "");
-                if (!nuevoValor || isNaN(nuevoValor)) return alert("Debes ingresar un valor numérico válido.");
-                v.valor = Number(nuevoValor);
-                v.est = "usado";
-                v.fechaHora = new Date().toLocaleString("es-CO");
-            } else if (nuevoEstado === 'libre') {
-                v.est = "libre";
-                v.usrNombre = "";
-                v.usrCc = "";
-                v.motivo = "";
-                v.valor = "";
-                v.fechaHora = "";
-            } else {
-                v.est = nuevoEstado;
-                let nuevoNombre = prompt("Nombre del funcionario asignado:", v.usrNombre || "");
-                let nuevaCc = prompt("Cédula del funcionario:", v.usrCc || "");
-                if (nuevoNombre !== null) v.usrNombre = nuevoNombre;
-                if (nuevaCc !== null) v.usrCc = nuevaCc;
-                v.fechaHora = new Date().toLocaleString("es-CO");
-            }
-
-            saveData();
-            alert("✅ ¡Vale actualizado con éxito!");
-        }
 
         function eliminarTodosLibresGlobal() {
+
             if(confirm("¿Enviar TODOS los vales libres de este departamento a la papelera? Se borrarán definitivamente en 2 días.")) {
+
                 let resto = vales.filter(v => !(v.dept === currentUser.dept && v.est === 'libre'));
+
                 let eliminados = vales.filter(v => v.dept === currentUser.dept && v.est === 'libre');
+
                 
+
                 const ahoraMs = new Date().getTime();
+
                 const fechaStr = new Date().toLocaleString("es-CO");
+
                 eliminados.forEach(item => {
+
                     item.timestampEliminacion = ahoraMs;
+
                     item.fechaEliminacion = fechaStr;
+
                     papeleraLibres.push(item);
+
                 });
 
+
+
                 vales = resto;
+
                 saveData();
+
             }
+
         }
+
+
 
         function restaurarValeGlobal(num) {
+
             let idx = papeleraLibres.findIndex(v => v.num === num && v.dept === currentUser.dept);
+
             if(idx !== -1) {
+
                 let restaurado = papeleraLibres.splice(idx, 1)[0];
+
                 delete restaurado.timestampEliminacion;
+
                 delete restaurado.fechaEliminacion;
+
                 vales.push(restaurado);
+
                 saveData();
+
             }
+
         }
+
+
 
         function agregarValesMasivos() {
+
             const raw = document.getElementById("add_bulk_input").value.trim();
+
             if (!raw) return alert("Ingresa vales.");
+
             
+
             const lineas = raw.split('\n').filter(line => line.trim().split(/\s+/).length >= 2);
+
             const cantidad = lineas.length;
 
+
+
             if (cantidad === 0) {
+
                 return alert("No se detectaron vales válidos. Revisa que cada línea tenga el número y la fecha.");
+
             }
+
+
 
             const confirmar = confirm(`¿Estás seguro de que deseas cargar ${cantidad} vales al inventario?`);
+
             if (!confirmar) return;
 
+
+
             let agregados = 0, repetidos = 0;
+
             const fechaCargaActual = new Date().toLocaleDateString("es-CO");
+
             
+
             lineas.forEach(line => {
+
                 const p = line.trim().split(/\s+/);
+
                 const num = p[0].toUpperCase(), fec = p[1];
+
                 const valeExistente = vales.find(v => v.num === num && v.dept === currentUser.dept);
+
                 
+
                 if (!valeExistente) {
+
                     vales.push({ num, fecVenc: fec, dept: currentUser.dept, est: "libre", usrNombre: "", usrCc: "", fechaHora: "", valor: "", motivo: "", fechaCarga: fechaCargaActual, descargadoUsado: false });
+
                     agregados++;
+
                 } else {
+
                     repetidos++;
+
                 }
+
             });
+
             
+
             document.getElementById("add_bulk_input").value = ""; 
+
             saveData();
+
             alert(`Carga completada: ${agregados} agregados, ${repetidos} repetidos omitidos.`);
+
         }
+
+
 
         function switchAuthTab(tab) {
+
             document.getElementById('form_login').style.display = tab === 'login' ? 'block' : 'none';
+
             document.getElementById('form_reg').style.display = tab === 'reg' ? 'block' : 'none';
+
             document.getElementById('tab_login').classList.toggle('active', tab === 'login');
+
             document.getElementById('tab_reg').classList.toggle('active', tab === 'reg');
+
         }
+
+
 
         function register() {
+
             const dept = document.getElementById("r_dept").value, nombre = document.getElementById("r_name").value.trim(), cc = document.getElementById("r_cc").value.trim();
+
             if (!nombre || !cc) return alert("Completa tu nombre y cédula.");
+
             if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora.");
+
             const existe = usuarios.find(u => u.cc === cc);
+
             if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado.");
+
             
+
             const newUser = { cc, nombre, dept, rol: "funcionario" };
+
             usuarios.push(newUser); currentUser = newUser; saveData();
+
             alert(`¡Registro exitoso en ${dept.toUpperCase()}!`);
+
         }
 
+
+
         function login() {
+
             const dept = document.getElementById("l_dept").value, cc = document.getElementById("l_cc").value.trim(), pin = document.getElementById("l_pin").value.trim();
+
             if (!cc) return alert("Ingresa tu cédula.");
+
             
+
             if (ADMIN_ROLES[cc]) {
+
                 if (ADMIN_ROLES[cc] !== dept) return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
+
                 if (pin === (adminPins[cc] || "1234")) {
+
                     currentUser = { cc, nombre: `Admin ${dept.toUpperCase()}`, dept, rol: "admin" };
+
                     document.getElementById("l_pin").value = ""; saveData(); return;
+
                 }
+
                 return alert("PIN incorrecto.");
+
             }
+
             
+
             const usr = usuarios.find(u => u.cc === cc);
+
             if (!usr) return alert("Usuario no encontrado. Regístrate.");
+
             if (usr.dept !== dept) return alert(`Estás registrado en ${usr.dept.toUpperCase()}.`);
+
             
+
             currentUser = usr; saveData();
+
         }
+
+
 
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
 
+
+
         function cambiarPinAdmin() {
+
             const pinActual = prompt("Ingresa tu PIN actual:");
+
             if (pinActual === adminPins[currentUser.cc]) {
+
                 const nuevo = prompt("Nuevo PIN (mínimo 4 caracteres):");
+
                 if (nuevo && nuevo.trim().length >= 4) { adminPins[currentUser.cc] = nuevo.trim(); saveData(); alert("PIN actualizado."); }
+
                 else alert("Mínimo 4 caracteres.");
+
             } else if (pinActual !== null) alert("PIN incorrecto.");
+
         }
+
+
 
         function eliminarVale(num) { if (confirm(`¿Eliminar vale ${num}?`)) { vales = vales.filter(v => !(v.num === num && v.dept === currentUser.dept)); saveData(); } }
 
+
+
         function bloquearVale(num) {
+
             const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
+
             if (v) {
+
                 if (confirm(`¿Bloquear temporalmente el vale ${num}? Quedará inactivo hasta que decidas liberarlo.`)) {
+
                     v.est = "bloqueado";
+
                     v.fechaHora = new Date().toLocaleString("es-CO");
+
                     saveData();
+
                 }
+
             }
+
         }
+
+
 
         function liberarValeBloqueado(num) {
+
             const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
+
             if (v) {
+
                 if (confirm(`¿Liberar y reactivar el vale ${num}? Volverá a estar disponible.`)) {
+
                     v.est = "libre";
+
                     v.usrNombre = "";
+
                     v.usrCc = "";
+
                     v.motivo = "";
+
                     v.valor = "";
+
                     v.fechaHora = "";
+
                     saveData();
+
                 }
+
             }
+
         }
+
+
 
         function hacerValeLibre(num) {
+
             if (confirm(`¿Estás seguro de devolver el vale ${num} al estado disponible (libre)?`)) {
+
                 const v = vales.find(v => v.num === num && v.dept === currentUser.dept);
+
                 if (v) {
+
                     v.est = "libre";
+
                     v.usrNombre = "";
+
                     v.usrCc = "";
+
                     v.motivo = "";
+
                     v.valor = "";
+
                     v.fechaHora = "";
+
                     saveData();
+
                     alert("¡Vale devuelto a disponible con éxito!");
+
                 }
+
             }
+
         }
+
+
 
         function eliminarUsuario(cc, nombre) {
+
             if (confirm(`¿Resetear a ${nombre}?`)) {
+
                 vales.forEach(v => { if (v.usrCc === cc && (v.est === "obtenido" || v.est === "asignado")) { v.est = "libre"; v.usrNombre = ""; v.usrCc = ""; } });
+
                 usuarios = usuarios.filter(u => !(u.cc === cc && u.dept === currentUser.dept)); saveData();
+
             }
+
         }
 
+
+
         function obtenerValeLibre() {
+            // 1. Validar primero si el usuario ya tiene un vale activo en curso
             let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
             if (valeActivo) {
                 return alert("Ya tienes un vale activo en curso.");
             }
 
+            // 2. Buscamos TODOS los vales que estén realmente libres en este momento
             let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
+            
             if (libresDisponibles.length === 0) {
                 return alert("No hay vales libres en este momento.");
             }
 
+            // 3. Tomamos siempre el PRIMER vale disponible de la lista fresca
             let libre = libresDisponibles[0];
+
+            // 4. Doble validación de seguridad: Verificamos por ID/número que siga libre antes de asignarlo
             let valeReal = vales.find(v => v.num === libre.num && v.dept === currentUser.dept);
             
             if (valeReal && valeReal.est === "libre") {
+                // Si todavía está libre, se lo asignamos de forma exclusiva
                 valeReal.est = "obtenido"; 
                 valeReal.usrNombre = currentUser.nombre; 
                 valeReal.usrCc = currentUser.cc; 
-                saveData(); 
+                saveData(); // Guarda y sincroniza de inmediato
             } else {
+                // Si la otra persona le ganó por milisegundos, le avisamos amablemente que intente de nuevo
                 alert("Este vale acaba de ser tomado por otra persona en este instante. Por favor presiona nuevamente el botón para asignarte el siguiente disponible.");
-                cargarDatosNube(); 
+                cargarDatosNube(); // Recarga los datos reales de la nube al instante
             }
         }
 
-        function copiarCodigoVale(tipo) {
-            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === (tipo === 'obtained' ? "obtenido" : "asignado"));
-            if (v) { navigator.clipboard.writeText(v.num); alert("Copiado: " + v.num); }
-        }
 
-        function tomarVale() { const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido"); if (v) { v.est = "asignado"; saveData(); } }
 
-        function mostrarOpcion(opc) {
-            document.getElementById("form_sub_uso").style.display = opc === 'uso' ? "block" : "none";
-            document.getElementById("form_sub_canc").style.display = opc === 'canc' ? "block" : "none";
-        }
-
-        function confirmarUso() {
-            const val = document.getElementById("v_valor_servicio").value;
-            if (!val || val <= 0) return alert("Ingresa un valor.");
-            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
-            if (v) { v.est = "usado"; v.valor = val; v.fechaHora = new Date().toLocaleString("es-CO"); document.getElementById("v_valor_servicio").value = ""; saveData(); alert("Registrado con éxito."); }
-        }
-
-        function accionNoUsoVale() {
-            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
-            if (v && confirm("¿Liberar el vale?")) { v.est = "libre"; v.usrNombre = ""; v.usrCc = ""; saveData(); }
-        }
-
-        function confirmarCancelacion() {
-            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
-            if (v) {
-                const motivoSeleccionado = document.getElementById("v_motivo_cancelacion").value;
-                v.motivo = motivoSeleccionado;
-                v.fechaHora = new Date().toLocaleString("es-CO");
-
-                if (motivoSeleccionado === "Vale inactivo") {
-                    v.est = "cancelado";
-                    alert("Vale marcado como inactivo/rechazado. Queda fuera de circulación.");
-                } else {
-                    v.est = "libre";
-                    v.usrNombre = "";
-                    v.usrCc = "";
-                    alert("El vale ha sido liberado automáticamente y ya está disponible nuevamente.");
-                }
-                saveData();
-            }
-        }
+        // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
 
         function descargarReporteExcel() {
+
             if (currentUser.rol !== "admin") return;
+
             const filtro = document.getElementById("export_filter").value;
+
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
+
             
+
             if (filtro === "usados") {
+
+                // Filtramos solo los usados que NO han sido descargados todavía
+
                 valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
+
+                
+
                 if (valesDept.length === 0) {
+
                     return alert("No hay nuevos vales usados pendientes por descargar.");
+
                 }
+
+
+
+                // Marcamos cada uno de estos vales como descargados
+
                 valesDept.forEach(v => {
+
                     let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
+
                     if (valeReal) valeReal.descargadoUsado = true;
+
                 });
+
+
+
+                // Guardamos el cambio en la nube y localStorage
+
                 saveData();
+
             } else {
+
                 if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
+
                 else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
+
                 else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
 
+
+
                 if (valesDept.length === 0) return alert("No hay registros para este filtro.");
+
             }
+
+
 
             const datosFormateados = valesDept.map(v => ({
+
                 "Número de Vale": v.num,
+
                 "Vencimiento": v.fecVenc,
+
                 "Fecha Carga": v.fechaCarga || '',
+
                 "Estado": v.est,
+
                 "Departamento": v.dept,
+
                 "Funcionario": v.usrNombre || '',
+
                 "Cédula": v.usrCc || '',
+
                 "Fecha y Hora": v.fechaHora || '',
+
                 "Valor COP": v.valor ? Number(v.valor) : '',
+
                 "Motivo / Detalle": v.motivo || ''
+
             }));
 
+
+
             const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
+
             const workbook = XLSX.utils.book_new();
+
             XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario Vales");
+
             XLSX.writeFile(workbook, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.xlsx`);
+
         }
 
-        function renderAdmin() {
-            const s = document.getElementById("search_user").value.toLowerCase();
-            const tbU = document.getElementById("tbl_usuarios"); 
-            tbU.innerHTML = "";
 
-            let mapaPersonal = new Map();
-            usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
-                mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
-            });
 
-            vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
-                if (!mapaPersonal.has(v.usrCc)) {
-                    mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
-                }
-            });
+       function renderAdmin() {
 
-            let personalUnificado = Array.from(mapaPersonal.values());
-            
-            personalUnificado.forEach(u => {
-                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
-                    tbU.innerHTML += `
-                        <tr>
-                            <td>${u.nombre}</td>
-                            <td>${u.cc}</td>
-                            <td>
-                                <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
-                            </td>
-                        </tr>`;
-                }
-            });
+    const s = document.getElementById("search_user").value.toLowerCase();
 
-            if (personalUnificado.length === 0) {
-                tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
-            }
+    const tbU = document.getElementById("tbl_usuarios"); 
 
-            const filtro = document.getElementById("export_filter").value;
-            const tbI = document.getElementById("tbl_inventario"); 
-            tbI.innerHTML = "";
-            
-            let vd = vales.filter(v => v.dept === currentUser.dept);
-            if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
-            else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
-            else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
-            else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
+    tbU.innerHTML = "";
 
-            vd.forEach(v => {
-                let badge = "badge-libre"; 
-                if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
-                else if(v.est === "usado") badge="badge-usado"; 
-                else if(v.est === "cancelado") badge="badge-canc";
-                else if(v.est === "bloqueado") badge="badge-bloqueado";
-                
-                let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
-                
-                if (v.est === "cancelado" || v.est === "libre") {
-                    botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
-                }
-                
-                if (v.est === "bloqueado" || v.est === "cancelado") {
-                    botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
-                }
 
-                tbI.innerHTML += `
-                    <tr>
-                        <td><strong>${v.num}</strong></td>
-                        <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
-                        <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
-                        <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
-                        <td>${botonesAccion}</td>
-                    </tr>`;
-            });
+
+    // 1. Recopilar usuarios únicos combinando la lista de registros y los que han usado vales
+
+    let mapaPersonal = new Map();
+
+
+
+    // Primero agregamos los registrados oficialmente
+
+    usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
+
+        mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
+
+    });
+
+
+
+    // Luego agregamos a los que aparecen en los vales usados/asignados pero no estaban en la lista
+
+    vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
+
+        if (!mapaPersonal.has(v.usrCc)) {
+
+            mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
+
         }
+
+    });
+
+
+
+    // 2. Dibujar la tabla unificada de personal
+
+    let personalUnificado = Array.from(mapaPersonal.values());
+
+    
+
+    personalUnificado.forEach(u => {
+
+        if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
+
+            tbU.innerHTML += `
+
+                <tr>
+
+                    <td>${u.nombre}</td>
+
+                    <td>${u.cc}</td>
+
+                    <td>
+
+                        <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
+
+                    </td>
+
+                </tr>`;
+
+        }
+
+    });
+
+
+
+    if (personalUnificado.length === 0) {
+
+        tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
+
+    }
+
+
+
+    // --- Filtro del Inventario General ---
+
+    const filtro = document.getElementById("export_filter").value;
+
+    const tbI = document.getElementById("tbl_inventario"); 
+
+    tbI.innerHTML = "";
+
+    
+
+    let vd = vales.filter(v => v.dept === currentUser.dept);
+
+    if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
+
+    else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
+
+    else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
+
+    else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
+
+
+
+    vd.forEach(v => {
+
+        let badge = "badge-libre"; 
+
+        if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
+
+        else if(v.est === "usado") badge="badge-usado"; 
+
+        else if(v.est === "cancelado") badge="badge-canc";
+
+        else if(v.est === "bloqueado") badge="badge-bloqueado";
+
+        
+
+        let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
+
+        
+
+        if (v.est === "cancelado" || v.est === "libre") {
+
+            botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
+
+        }
+
+        
+
+        if (v.est === "bloqueado") {
+
+            botonesAccion += ` <button onclick="liberarValeBloqueado('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Desbloquear / Liberar">♻️ Liberar</button>`;
+
+        }
+
+
+
+        if (v.est === "cancelado") {
+
+            botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
+
+        }
+
+
+
+        tbI.innerHTML += `
+
+            <tr>
+
+                <td><strong>${v.num}</strong></td>
+
+                <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
+
+                <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
+
+                <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
+
+                <td>${botonesAccion}</td>
+
+            </tr>`;
+
+    });
+
+}
+
+
 
         function render() {
+
             let titulo = currentUser ? "Asignación de Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1) : "Asignación de Vales";
+
             document.getElementById("page_title").innerText = titulo; document.getElementById("header_title_text").innerText = titulo;
 
+
+
             if (!currentUser) {
+
                 document.getElementById("sec_metrics").style.display = "none"; document.getElementById("sec_auth").style.display = "block"; document.getElementById("sec_main").style.display = "none"; document.getElementById("header_user_info").innerHTML = "";
+
             } else {
+
                 document.getElementById("sec_metrics").style.display = "grid"; document.getElementById("sec_auth").style.display = "none"; document.getElementById("sec_main").style.display = "block";
+
                 const vd = vales.filter(v => v.dept === currentUser.dept);
+
                 
+
                 if (currentUser.rol === "admin" && currentUser.dept === "instrumentacion" && currentUser.cc === "1012426957") {
+
                     document.getElementById("box_admin_images").style.display = "block";
+
                 } else {
+
                     document.getElementById("box_admin_images").style.display = "none";
+
                 }
 
+
+
                 if (currentUser.rol === "admin") {
+
                     document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+
                     const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
+
                     document.getElementById("m_asig").innerText = asignadosTotal.length;
+
                     document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+
+                    // Contador de usados solo muestra los que faltan por descargar
+
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
+
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
+
                 } else {
+
                     document.getElementById("m_libres").innerText = vd.filter(v => v.est === "libre").length;
+
                     const misVales = vd.filter(v => v.usrCc === currentUser.cc);
+
                     document.getElementById("m_asig").innerText = misVales.length;
+
                     document.getElementById("m_asig_curso").innerText = misVales.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
+
                     document.getElementById("m_usados").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "usado").length;
+
                     document.getElementById("m_canc").innerText = misVales.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado").length;
+
                 }
+
                 
+
                 document.getElementById("header_user_info").innerHTML = `<p style="margin:0; font-weight:600;">${currentUser.nombre}</p><p style="margin:0; font-size:11px; color:#64748b;">CC: ${currentUser.cc} | Dept: <strong>${currentUser.dept.toUpperCase()}</strong></p><span onclick="logout()" style="color:#ef4444; font-size:11px; cursor:pointer; text-decoration:underline;">Cerrar sesión</span>`;
+
                 
+
                 if (currentUser.rol === "admin") {
+
                     document.getElementById("panel_admin").style.display = "grid"; 
+
                     document.getElementById("panel_funcionario").style.display = "none"; 
+
                     document.getElementById("tag_dept_admin").innerText = currentUser.dept.toUpperCase();
+
                     renderAdmin();
+
                 } else {
+
                     document.getElementById("panel_admin").style.display = "none"; document.getElementById("panel_funcionario").style.display = "block"; document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
+
                     const vO = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
+
                     const vA = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+
                     if (vA) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "block"; document.getElementById("v_code_active").innerText = vA.num; document.getElementById("form_sub_uso").style.display = "none"; document.getElementById("form_sub_canc").style.display = "none"; }
+
                     else if (vO) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "block"; document.getElementById("inst_paso_tomado").style.display = "none"; document.getElementById("v_code_obtained").innerText = vO.num; document.getElementById("v_fec_obtained").innerText = vO.fecVenc; }
+
                     else { document.getElementById("inst_paso_solicitar").style.display = "block"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "none"; }
+
                 }
+
             }
+
         }
+
     </script>
+
 </body>
+
 </html>
