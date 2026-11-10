@@ -1557,21 +1557,8 @@ function editarValeAdmin(num) {
 
 
 
-        function obtenerValeLibre() {
-            console.log("👉 Se hizo clic en Tomar Vale"); // Esto nos dirá si el botón sí entra a la función
-            
+     function obtenerValeLibre() {
             try {
-                // Verificar que existan las variables principales
-                if (typeof currentUser === 'undefined' || !currentUser) {
-                    alert("⚠️ Error: No hay un usuario activo detectado.");
-                    return;
-                }
-
-                if (typeof vales === 'undefined' || !Array.isArray(vales)) {
-                    alert("⚠️ Error: La lista de vales no está cargada en el sistema.");
-                    return;
-                }
-
                 if (typeof loadData === "function") {
                     loadData();
                 }
@@ -1579,7 +1566,6 @@ function editarValeAdmin(num) {
                 // Verificar si ya tiene uno activo
                 let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "asignado" || v.est === "obtenido"));
                 if (valeActivo) {
-                    console.log("ℹ️ El usuario ya tiene el vale:", valeActivo.num);
                     gestionarValeActivo(valeActivo);
                     return;
                 }
@@ -1608,12 +1594,12 @@ function editarValeAdmin(num) {
                     saveData();
                 }
 
-                console.log("✅ Vale asignado con éxito, abriendo menú para:", valeSeleccionado.num);
                 gestionarValeActivo(valeSeleccionado);
 
             } catch (error) {
-                console.error("❌ Error grave en obtenerValeLibre:", error);
-                alert("⚠️ Ocurrió un error al tomar el vale: " + error.message);
+                console.error("Error en obtenerValeLibre:", error);
+                alert("⚠️ Ocurrió un error al tomar el vale. La página se recargará.");
+                location.reload();
             }
         }
 
@@ -1651,7 +1637,6 @@ function editarValeAdmin(num) {
                 location.reload();
             }
         }
-
 
         // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
 
