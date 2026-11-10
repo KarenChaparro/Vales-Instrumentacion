@@ -1567,7 +1567,8 @@ function editarValeAdmin(num) {
                 // 2. Verificar si el usuario ya tiene un vale activo en curso
                 let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "asignado" || v.est === "obtenido"));
                 if (valeActivo) {
-                    alert("⚠️ Ya tienes un vale asignado en curso (Nº " + valeActivo.num + ").");
+                    // Si ya tiene uno activo, le abrimos el menú directamente para que gestione ese mismo
+                    gestionarValeActivo(valeActivo);
                     return;
                 }
 
@@ -1579,7 +1580,7 @@ function editarValeAdmin(num) {
                     return;
                 }
 
-                // 4. Seleccionar de forma exclusiva el primer vale libre real
+                // 4. Seleccionar de forma exclusiva el primer vale libre real sin repetir
                 let valeSeleccionado = null;
                 for (let i = 0; i < libresDisponibles.length; i++) {
                     let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
@@ -1591,33 +1592,69 @@ function editarValeAdmin(num) {
 
                 if (!valeSeleccionado) {
                     alert("⚠️ Este vale acaba de ser tomado por otro usuario. Intenta de nuevo.");
-                    location.reload();
                     return;
                 }
 
-                // 5. Asignar el vale al usuario actual
+                // 5. Asignarlo temporalmente al usuario actual de forma segura
                 valeSeleccionado.est = "asignado"; 
                 valeSeleccionado.usrNombre = currentUser.nombre; 
                 valeSeleccionado.usrCc = currentUser.cc; 
                 valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
                 valeSeleccionado.motivo = "";
                 
-                // Guardar cambios
                 if (typeof saveData === "function") {
                     saveData();
                 }
 
-                // 6. Mensaje de éxito y recarga inmediata para desplegar las opciones
-                alert("✅ ¡Vale número " + valeSeleccionado.num + " asignado con éxito!");
-                
-                // Forzar la recarga limpia para que aparezcan los botones de "Ver", "Usar" o "Cancelar"
-                setTimeout(() => {
-                    location.reload();
-                }, 50);
+                // 6. Lanzar de inmediato el menú de las 3 opciones que necesitas
+                gestionarValeActivo(valeSeleccionado);
 
             } catch (error) {
                 console.error("Error en obtenerValeLibre:", error);
-                alert("⚠️ Ocurrió un pequeño error. La página se recargará.");
+                alert("⚠️ Ocurrió un error al tomar el vale. La página se recargará.");
+                location.reload();
+            }
+        }
+
+        function gestionarValeActivo(vale) {
+            let opcion = prompt(`🎟️ ¡Vale asignado con éxito: Nº ${vale.num}!\n\n¿Qué deseas hacer?\n1. Usé el vale (Registrar valor)\n2. No usé el vale (Dejar pendiente / En curso)\n3. Cancelar vale\n\nIngresa 1, 2 o 3:`, "1");
+            
+            if (opcion === "1") {
+                let valorUsado = prompt("Ingresa el valor total pagado en pesos ($ COP):", "25000");
+                if (valorUsado === null) {
+                    location.reload();
+                    return;
+                }
+                if (!valorUsado || isNaN(valorUsado)) {
+                    alert("⚠️ Valor no válido. El vale queda guardado como asignado.");
+                    location.reload();
+                    return;
+                }
+                vale.est = "usado";
+                vale.valor = Number(valorUsado);
+                vale.fechaHora = new Date().toLocaleString("es-CO");
+                if (typeof saveData === "function") saveData();
+                alert("✅ ¡Vale registrado como USADO con éxito!");
+                location.reload();
+
+            } else if (opcion === "2") {
+                alert("📌 El vale ha quedado guardado como asignado en curso.");
+                location.reload();
+
+            } else if (opcion === "3") {
+                let motivoCancelacion = prompt("Ingresa el motivo de la cancelación:", "No utilizado");
+                if (motivoCancelacion === null) {
+                    location.reload();
+                    return;
+                }
+                vale.est = "cancelado";
+                vale.motivo = motivoCancelacion.trim();
+                if (typeof saveData === "function") saveData();
+                alert("❌ El vale ha sido cancelado.");
+                location.reload();
+
+            } else {
+                // Si presiona cancelar o cierra el prompt, se queda asignado sin bloquearse
                 location.reload();
             }
         }
