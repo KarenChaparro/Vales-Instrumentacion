@@ -1558,36 +1558,58 @@ function editarValeAdmin(num) {
 
 
         function obtenerValeLibre() {
-            // 1. Verificar si el usuario ya tiene un vale activo o en curso
-            let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
-            if (valeActivo) {
-                return alert("⚠️ Ya tienes un vale activo en curso. Debes finalizarlo o registrar su uso antes de solicitar otro.");
+            // 1. Intentar actualizar datos recientes si existe la función de carga en la nube/local
+            if (typeof loadData === "function") {
+                loadData();
             }
 
-            // 2. Filtrar TODOS los vales que estén verdaderamente libres en este departamento
+            // 2. Verificar si el usuario ya tiene un vale activo o en curso
+            let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado" || v.est === "usado"));
+            if (valeActivo) {
+                return alert("⚠️ Ya tienes un vale activo o en curso. Debes finalizarlo antes de solicitar otro.");
+            }
+
+            // 3. Buscar TODOS los vales que estén verdaderamente libres en este departamento
             let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
             
             if (libresDisponibles.length === 0) {
                 return alert("⚠️ No hay vales libres disponibles en este momento. Por favor comunícate con la administradora.");
             }
 
-            // 3. Tomar de forma segura el primer vale libre disponible de la lista
-            let valeSeleccionado = libresDisponibles[0];
-            let valeReal = vales.find(v => v.num === valeSeleccionado.num && v.dept === currentUser.dept);
+            // 4. Tomar el primer vale que esté 100% libre y asegurarnos de marcarlo de inmediato
+            let valeSeleccionado = null;
+            for (let i = 0; i < libresDisponibles.length; i++) {
+                let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
+                if (candidato) {
+                    valeSeleccionado = candidato;
+                    break; // Encontramos uno totalmente libre y disponible, salimos del bucle
+                }
+            }
+
+            if (!valeSeleccionado) {
+                return alert("⚠️ Todos los vales libres acaban de ser tomados por otros usuarios. Intenta de nuevo.");
+            }
+
+            // 5. Asignarlo de forma exclusiva a este usuario
+            valeSeleccionado.est = "obtenido"; 
+            valeSeleccionado.usrNombre = currentUser.nombre; 
+            valeSeleccionado.usrCc = currentUser.cc; 
+            valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
             
-            if (valeReal && valeReal.est === "libre") {
-                valeReal.est = "obtenido"; 
-                valeReal.usrNombre = currentUser.nombre; 
-                valeReal.usrCc = currentUser.cc; 
-                valeReal.fechaHora = new Date().toLocaleString("es-CO");
+            // Guardar cambios inmediatamente
+            if (typeof saveData === "function") {
                 saveData();
-                alert(`¡Vale ${valeReal.num} asignado con éxito!`);
+            }
+
+            alert(`✅ ¡Vale número ${valeSeleccionado.num} asignado con éxito!`);
+            
+            // Recargar la pantalla para actualizar los botones y estados visuales
+            if (typeof actualizarInterfaz === "function") {
+                actualizarInterfaz();
             } else {
-                // Si justo en este milisegundo otra persona lo tomó, buscamos recursivamente el siguiente de inmediato
-                obtenerValeLibre();
+                location.reload();
             }
         }
-
 
 
         // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
