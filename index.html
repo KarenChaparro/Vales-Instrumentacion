@@ -1558,55 +1558,66 @@ function editarValeAdmin(num) {
 
 
         function obtenerValeLibre() {
-            // 1. Refrescar datos recientes si existe la función
-            if (typeof loadData === "function") {
-                loadData();
-            }
-
-            // 2. Verificar si el usuario ya tiene un vale activo o en curso (reconociendo todos los estados posibles)
-            let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
-            if (valeActivo) {
-                alert(`⚠️ Ya tienes el vale ${valeActivo.num} en curso.`);
-                return;
-            }
-
-            // 3. Buscar vales libres de forma segura y sin colisiones
-            let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
-            
-            if (libresDisponibles.length === 0) {
-                return alert("⚠️ No hay vales libres disponibles en este momento. Por favor comunícate con la administradora.");
-            }
-
-            let valeSeleccionado = null;
-            for (let i = 0; i < libresDisponibles.length; i++) {
-                let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
-                if (candidato) {
-                    valeSeleccionado = candidato;
-                    break;
+            try {
+                // 1. Cargar datos frescos si existe la función
+                if (typeof loadData === "function") {
+                    loadData();
                 }
-            }
 
-            if (!valeSeleccionado) {
-                return alert("⚠️ Este vale acaba de ser tomado por otro usuario. Intenta de nuevo.");
-            }
+                // 2. Verificar si el usuario ya tiene un vale activo en curso
+                let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "asignado" || v.est === "obtenido"));
+                if (valeActivo) {
+                    alert("⚠️ Ya tienes un vale asignado en curso (Nº " + valeActivo.num + ").");
+                    return;
+                }
 
-            // 4. Asignarlo con estado "asignado" (para que las tarjetas y botones lo reconozcan sin bloqueos)
-            valeSeleccionado.est = "asignado"; 
-            valeSeleccionado.usrNombre = currentUser.nombre; 
-            valeSeleccionado.usrCc = currentUser.cc; 
-            valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
-            valeSeleccionado.motivo = "";
-            
-            if (typeof saveData === "function") {
-                saveData();
-            }
+                // 3. Buscar vales libres en este departamento
+                let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
+                
+                if (libresDisponibles.length === 0) {
+                    alert("⚠️ No hay vales libres disponibles en este momento.");
+                    return;
+                }
 
-            alert(`✅ ¡Te fue asignado con éxito el vale número ${valeSeleccionado.num}!`);
-            
-            // Refrescar la interfaz para que aparezcan las opciones de inmediato
-            if (typeof actualizarInterfaz === "function") {
-                actualizarInterfaz();
-            } else {
+                // 4. Seleccionar de forma exclusiva el primer vale libre real
+                let valeSeleccionado = null;
+                for (let i = 0; i < libresDisponibles.length; i++) {
+                    let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
+                    if (candidato) {
+                        valeSeleccionado = candidato;
+                        break;
+                    }
+                }
+
+                if (!valeSeleccionado) {
+                    alert("⚠️ Este vale acaba de ser tomado por otro usuario. Intenta de nuevo.");
+                    location.reload();
+                    return;
+                }
+
+                // 5. Asignar el vale al usuario actual
+                valeSeleccionado.est = "asignado"; 
+                valeSeleccionado.usrNombre = currentUser.nombre; 
+                valeSeleccionado.usrCc = currentUser.cc; 
+                valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
+                valeSeleccionado.motivo = "";
+                
+                // Guardar cambios
+                if (typeof saveData === "function") {
+                    saveData();
+                }
+
+                // 6. Mensaje de éxito y recarga inmediata para desplegar las opciones
+                alert("✅ ¡Vale número " + valeSeleccionado.num + " asignado con éxito!");
+                
+                // Forzar la recarga limpia para que aparezcan los botones de "Ver", "Usar" o "Cancelar"
+                setTimeout(() => {
+                    location.reload();
+                }, 50);
+
+            } catch (error) {
+                console.error("Error en obtenerValeLibre:", error);
+                alert("⚠️ Ocurrió un pequeño error. La página se recargará.");
                 location.reload();
             }
         }
