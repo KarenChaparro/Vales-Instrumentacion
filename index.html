@@ -1052,8 +1052,7 @@
                     let btnAccion = '---';
                     if (esAdmin) {
                         if (v.est === 'libre') {
-                            // Botón para asignar este vale libre específico de inmediato
-                            btnAccion = `<button onclick="asignarValeEspecifico('${v.num}'); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">➕ Asignar</button> <button onclick="eliminarValeLibreGlobal('${v.num}'); cerrarModalDetalle();" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">🗑️</button>`;
+                            btnAccion = `<button onclick="asignarValeEspecifico('${v.num}')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">➕ Asignar</button> <button onclick="eliminarValeLibreGlobal('${v.num}'); abrirPestanaDetalle('${tipo}');" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">🗑️</button>`;
                         } else if (v.est === 'asignado' || v.est === 'obtenido' || v.est === 'usado' || v.est === 'cancelado') {
                             btnAccion = `<button onclick="editarValeAdmin('${v.num}'); cerrarModalDetalle();" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">✏️ Editar</button>`;
                         }
@@ -1081,7 +1080,7 @@
                 <div style="background:white; padding:25px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:100%; max-width:1000px; max-height:90vh; display:flex; flex-direction:column;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #8b1a2b; padding-bottom:12px; margin-bottom:15px;">
                         <h2 style="color:#8b1a2b; margin:0; font-size:20px;">${titulo} (${datosMostrar.length})</h2>
-                        <button onclick="cerrarModalDetalle()" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; width:auto;">⬅️ Cerrar</button>
+                        <button onclick="document.getElementById('modal_detalles_dinamico').remove();" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; width:auto;">⬅️ Cerrar</button>
                     </div>
 
                     ${esAdmin && tipo === 'libres' ? `
@@ -1113,6 +1112,19 @@
             `;
 
             document.body.appendChild(modalDiv);
+        }
+
+        function cerrarModalDetalle() {
+            let m = document.getElementById("modal_detalles_dinamico");
+            if (m) m.remove();
+        }
+
+        function filtrarModalGeneral() {
+            const texto = document.getElementById("filtro_general_modal").value.toLowerCase();
+            const filas = document.querySelectorAll("#modal_detalles_dinamico .fila-general");
+            filas.forEach(fila => {
+                fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
+            });
         }
 
         // FUNCIONES GLOBALES DE PAPELERA Y GESTIÓN
