@@ -1152,7 +1152,14 @@
             }
 
         }
-
+function tomarVale() { 
+            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido"); 
+            if (v) { 
+                v.est = "asignado"; 
+                saveData(); 
+                render(); 
+            } 
+        }
         function asignarValeEspecifico(num) {
             let vale = vales.find(v => v.num === num && v.dept === currentUser.dept && v.est === 'libre');
             if (!vale) {
