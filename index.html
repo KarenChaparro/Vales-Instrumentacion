@@ -1000,520 +1000,266 @@
 
 
 
-        function abrirPestanaDetalle(tipo) {
-
+       function abrirPestanaDetalle(tipo) {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
-
             let titulo = "Detalles de Vales";
-
             let datosMostrar = [];
-
             let esAdmin = (currentUser.rol === "admin");
 
-
-
             if (esAdmin) {
-
                 if (tipo === 'libres') {
-
                     titulo = "Vales Disponibles";
-
                     datosMostrar = valesDept.filter(v => v.est === "libre");
-
                 } else if (tipo === 'asignados') {
-
                     titulo = "Vales Asignados";
-
                     datosMostrar = valesDept.filter(v => v.est !== "libre");
-
                 } else if (tipo === 'usados') {
-
                     titulo = "Vales Usados (Nuevos sin descargar)";
-
                     datosMostrar = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
-
                 } else if (tipo === 'cancelados') {
-
                     titulo = "Vales Cancelados";
-
                     datosMostrar = valesDept.filter(v => v.est === "cancelado");
-
                 }
-
             } else {
-
                 if (tipo === 'libres') {
-
                     titulo = "Vales Disponibles";
-
                     datosMostrar = valesDept.filter(v => v.est === "libre");
-
                 } else if (tipo === 'asignados') {
-
                     titulo = "Mis Vales Asignados / En Curso";
-
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc);
-
                 } else if (tipo === 'usados') {
-
                     titulo = "Mis Vales Usados";
-
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "usado");
-
                 } else if (tipo === 'cancelados') {
-
                     titulo = "Mis Vales Cancelados";
-
                     datosMostrar = valesDept.filter(v => v.usrCc === currentUser.cc && v.est === "cancelado");
-
                 }
-
             }
-
-
 
             const nuevaVentana = window.open("", "_blank");
-
             
-
             if (tipo === 'libres') {
-
                 nuevaVentana.document.write(`
-
                     <!DOCTYPE html>
-
                     <html lang="es">
-
                     <head>
-
                         <meta charset="UTF-8">
-
                         <title>${titulo}</title>
-
                         <style>
-
                             body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
-
                             .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto; }
-
                             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
-
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
                             .btn-danger-all { background: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-bottom: 10px; }
-
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
-
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
-
                             .papelera-box { margin-top: 30px; background: #fff1f2; border: 1px dashed #f43f5e; padding: 15px; border-radius: 10px; }
-
                             .papelera-box h3 { color: #be123c; margin-top: 0; font-size: 16px; }
-
                         </style>
-
                     </head>
-
                     <body>
-
                         <div class="container">
-
                             <div class="header">
-
                                 <h1>${titulo} (<span id="contador_libres">${datosMostrar.length}</span>)</h1>
-
                                 <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
-
                             </div>
-
                             
-
                             ${esAdmin ? '<button class="btn-danger-all" onclick="window.opener.eliminarTodosLibresGlobal(); actualizarVentanaPapelera();">🗑️ Eliminar todos los vales libres</button>' : ''}
-
                             
-
                             <input type="text" id="filtro_libres" placeholder="🔍 Buscar por número de vale..." onkeyup="filtrarLibres()">
-
                             
-
                             <table>
-
-                               <thead>
-
+                                <thead>
                                     <tr><th>Nº de Vale</th><th>Estado</th><th>Fecha Carga</th><th>Vencimiento</th> ${esAdmin ? '<th>Acción</th>' : ''}</tr>
-
                                 </thead>
-
                                 <tbody id="tabla_libres_body">
-
                                     ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>' : ''}
-
                                     ${datosMostrar.map(v => `
-
                                         <tr class="fila-vale" data-num="${v.num}">
-
                                             <td><strong>${v.num}</strong></td>
-
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
-
                                             <td>${v.fechaCarga || '---'}</td>
-
                                             <td>${v.fecVenc || '---'}</td>
-
                                             ${esAdmin ? '<td><button onclick="window.opener.eliminarValeLibreGlobal(\''+v.num+'\'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>' : ''}
-
                                         </tr>
-
                                     `).join('')}
-
                                 </tbody>
-
                             </table>
-
-
 
                             ${esAdmin ? `
-
                                 <div class="papelera-box">
-
                                     <h3>🗑️ Papelera de Vales Libres (<span id="contador_papelera">0</span>)</h3>
-
                                     <p style="font-size:12px; color:#881337; margin-bottom:10px;">Los vales eliminados se borrarán por completo de forma automática después de 2 días. Puedes restaurarlos aquí:</p>
-
                                     <table>
-
                                         <thead>
-
                                             <tr><th>Nº de Vale</th><th>Vencimiento</th><th>Eliminado el</th><th>Acción</th></tr>
-
                                         </thead>
-
                                         <tbody id="tabla_papelera_body">
-
                                             <tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>
-
                                         </tbody>
-
                                     </table>
-
                                 </div>
-
                             ` : ''}
-
                         </div>
-
                         
-
                         <script>
-
                             function filtrarLibres() {
-
                                 const texto = document.getElementById("filtro_libres").value.toLowerCase();
-
                                 const filas = document.querySelectorAll(".fila-vale");
-
                                 let visibles = 0;
-
                                 filas.forEach(fila => {
-
                                     const numeroVale = fila.querySelector("strong").innerText.toLowerCase();
-
                                     if (numeroVale.includes(texto)) {
-
                                         fila.style.display = "";
-
                                         visibles++;
-
                                     } else {
-
                                         fila.style.display = "none";
-
                                     }
-
                                 });
-
                                 document.getElementById("contador_libres").innerText = visibles;
-
                             }
-
-
 
                             function actualizarVentanaPapelera() {
-
                                 const valesActuales = window.opener.vales.filter(v => v.dept === '${currentUser.dept}' && v.est === 'libre');
-
                                 document.getElementById("contador_libres").innerText = valesActuales.length;
-
                                 
-
                                 const tbodyLibres = document.getElementById("tabla_libres_body");
-
                                 if(valesActuales.length === 0) {
-
                                     tbodyLibres.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay vales disponibles.</td></tr>';
-
                                 } else {
-
                                     tbodyLibres.innerHTML = valesActuales.map(v => \`
-
                                         <tr class="fila-vale" data-num="\${v.num}">
-
                                             <td><strong>\${v.num}</strong></td>
-
                                             <td><span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIBRE</span></td>
-
                                             <td>\${v.fechaCarga || '---'}</td>
-
                                             <td>\${v.fecVenc || '---'}</td>
-
                                             <td><button onclick="window.opener.eliminarValeLibreGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">🗑️ Eliminar</button></td>
-
                                         </tr>
-
                                     \`).join('');
-
                                 }
-
-
 
                                 const papeleraActual = (window.opener.papeleraLibres || []).filter(item => item.dept === '${currentUser.dept}');
-
                                 document.getElementById("contador_papelera").innerText = papeleraActual.length;
-
                                 const tbodyPapelera = document.getElementById("tabla_papelera_body");
-
                                 if(papeleraActual.length === 0) {
-
                                     tbodyPapelera.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#881337;">La papelera está vacía.</td></tr>';
-
                                 } else {
-
                                     tbodyPapelera.innerHTML = papeleraActual.map(v => \`
-
                                         <tr>
-
                                             <td><strong>\${v.num}</strong></td>
-
                                             <td>\${v.fecVenc || '---'}</td>
-
                                             <td>\${v.fechaEliminacion || '---'}</td>
-
                                             <td><button onclick="window.opener.restaurarValeGlobal('\${v.num}'); actualizarVentanaPapelera();" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;">♻️ Restaurar</button></td>
-
                                         </tr>
-
                                     \`).join('');
-
                                 }
-
                             }
-
-
 
                             window.onload = function() {
-
                                 actualizarVentanaPapelera();
-
                             };
-
                         <\/script>
-
                     </html>
-
                 `);
-
             } else {
-
                 nuevaVentana.document.write(`
-
                     <!DOCTYPE html>
-
                     <html lang="es">
-
                     <head>
-
                         <meta charset="UTF-8">
-
                         <title>${titulo}</title>
-
                         <style>
-
                             body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; color: #334155; }
-
                             .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
-
                             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8b1a2b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-
                             h1 { color: #8b1a2b; margin: 0; font-size: 22px; }
-
                             .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
                             .btn-cerrar { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
                             input[type="text"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; }
-
                             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-
                             th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-
                             th { background: #f8fafc; font-weight: 600; color: #475569; }
-
                         </style>
-
                     </head>
-
                     <body>
-
                         <div class="container">
-
                             <div class="header">
-
                                 <h1>${titulo}</h1>
-
                                 <div style="display:flex; gap:10px;">
-
                                     ${esAdmin ? '<button class="btn-excel" onclick="descargarExcelReal()">📊 Descargar Excel (.xlsx)</button>' : ''}
-
                                     <button class="btn-cerrar" onclick="window.close()">⬅️ Cerrar</button>
-
                                 </div>
-
                             </div>
-
                             <input type="text" id="filtro_general" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarGeneral()">
-
                             <table>
-
                                 <thead>
-
-                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th></tr>
-
+                                    <tr><th>Nº de Vale</th><th>Estado</th><th>Nombre</th><th>Fecha y Hora</th><th>Valor</th><th>Acción</th></tr>
                                 </thead>
-
                                 <tbody id="tabla_general_body">
-
-                                    ${datosMostrar.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
-
+                                    ${datosMostrar.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:30px;">No hay registros.</td></tr>' : ''}
                                     ${datosMostrar.map(v => `
-
                                         <tr class="fila-general">
-
                                             <td><strong>${v.num}</strong></td>
-
                                             <td>${v.est.toUpperCase()}</td>
-
                                             <td>${v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---"}</td>
-
                                             <td>${v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A')}</td>
-
                                             <td>${v.est === 'usado' ? '$ ' + Number(v.valor).toLocaleString('es-CO') : (v.est === 'cancelado' ? v.motivo : '---')}</td>
-
+                                            <td>
+                                                ${(esAdmin && (v.est === 'asignado' || v.est === 'obtenido' || v.est === 'usado')) ? `<button onclick="window.opener.editarValeAdmin('${v.num}'); location.reload();" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;" title="Editar o Completar">✏️ Editar</button>` : '---'}
+                                            </td>
                                         </tr>
-
                                     `).join('')}
-
                                 </tbody>
-
                             </table>
-
                         </div>
-
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
-
                         <script>
-
                             const datosExcel = ${JSON.stringify(datosMostrar)};
-
                             const tipoVista = '${tipo}';
-
                             const departamento = '${currentUser.dept}';
-
                             const esAdmin = ${esAdmin};
 
-
-
                             function filtrarGeneral() {
-
                                 const texto = document.getElementById("filtro_general").value.toLowerCase();
-
                                 const filas = document.querySelectorAll(".fila-general");
-
                                 filas.forEach(fila => {
-
                                     const contenido = fila.innerText.toLowerCase();
-
                                     if (contenido.includes(texto)) {
-
                                         fila.style.display = "";
-
                                     } else {
-
                                         fila.style.display = "none";
-
                                     }
-
                                 });
-
                             }
-
-
 
                             function descargarExcelReal() {
-
                                 if(!esAdmin || datosExcel.length === 0) return;
-
                                 const datosFormateados = datosExcel.map(v => ({
-
                                     "Número de Vale": v.num,
-
                                     "Vencimiento": v.fecVenc,
-
                                     "Fecha Carga": v.fechaCarga || '',
-
                                     "Estado": v.est,
-
                                     "Departamento": v.dept,
-
                                     "Funcionario": v.usrNombre || '',
-
                                     "Cédula": v.usrCc || '',
-
                                     "Fecha y Hora": v.fechaHora || '',
-
                                     "Valor COP": v.valor ? Number(v.valor) : '',
-
                                     "Motivo / Detalle": v.motivo || ''
-
                                 }));
-
                                 const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-
                                 const workbook = XLSX.utils.book_new();
-
                                 XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Vales");
-
                                 XLSX.writeFile(workbook, "Reporte_" + departamento.toUpperCase() + "_" + tipoVista.toUpperCase() + ".xlsx");
-
                             }
-
                         <\/script>
-
                     </html>
-
                 `);
-
             }
-
             nuevaVentana.document.close();
-
         }
-
 
 
         // FUNCIONES GLOBALES DE PAPELERA Y GESTIÓN
@@ -1542,7 +1288,44 @@
 
         }
 
+function editarValeAdmin(num) {
+            let v = vales.find(item => item.num === num && item.dept === currentUser.dept);
+            if (!v) return alert("Vale no encontrado.");
 
+            let nuevoEstado = prompt(`Editando Vale: ${v.num}\nEstado actual: ${v.est.toUpperCase()}\nFuncionario actual: ${v.usrNombre || 'Ninguno'}\nValor actual: ${v.valor || '0'}\n\nIngresa el nuevo estado (libre, asignado, usado o cancelado):`, v.est);
+            
+            if (!nuevoEstado) return;
+            nuevoEstado = nuevoEstado.trim().toLowerCase();
+
+            if (!['libre', 'asignado', 'obtenido', 'usado', 'cancelado'].includes(nuevoEstado)) {
+                return alert("Estado no válido. Debe ser: libre, asignado, usado o cancelado.");
+            }
+
+            if (nuevoEstado === 'usado') {
+                let nuevoValor = prompt("Ingresa el valor total pagado ($ COP):", v.valor || "");
+                if (!nuevoValor || isNaN(nuevoValor)) return alert("Debes ingresar un valor numérico válido.");
+                v.valor = Number(nuevoValor);
+                v.est = "usado";
+                v.fechaHora = new Date().toLocaleString("es-CO");
+            } else if (nuevoEstado === 'libre') {
+                v.est = "libre";
+                v.usrNombre = "";
+                v.usrCc = "";
+                v.motivo = "";
+                v.valor = "";
+                v.fechaHora = "";
+            } else {
+                v.est = nuevoEstado;
+                let nuevoNombre = prompt("Nombre del funcionario asignado:", v.usrNombre || "");
+                let nuevaCc = prompt("Cédula del funcionario:", v.usrCc || "");
+                if (nuevoNombre !== null) v.usrNombre = nuevoNombre;
+                if (nuevaCc !== null) v.usrCc = nuevaCc;
+                v.fechaHora = new Date().toLocaleString("es-CO");
+            }
+
+            saveData();
+            alert("✅ ¡Vale actualizado con éxito!");
+        }
 
         function eliminarTodosLibresGlobal() {
 
