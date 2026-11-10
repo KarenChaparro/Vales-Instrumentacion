@@ -1951,25 +1951,33 @@ function editarValeAdmin(num) {
 
                     renderAdmin();
 
-                } else {
-
-                    document.getElementById("panel_admin").style.display = "none"; document.getElementById("panel_funcionario").style.display = "block"; document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
-
+               } else {
+                    document.getElementById("panel_admin").style.display = "none"; 
+                    document.getElementById("panel_funcionario").style.display = "block"; 
+                    document.getElementById("tag_dept_user").innerText = currentUser.dept.toUpperCase();
+                    
                     const vO = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "obtenido");
-
                     const vA = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
-
-                    if (vA) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "block"; document.getElementById("v_code_active").innerText = vA.num; document.getElementById("form_sub_uso").style.display = "none"; document.getElementById("form_sub_canc").style.display = "none"; }
-
-                    else if (vO) { document.getElementById("inst_paso_solicitar").style.display = "none"; document.getElementById("inst_paso_obtener").style.display = "block"; document.getElementById("inst_paso_tomado").style.display = "none"; document.getElementById("v_code_obtained").innerText = vO.num; document.getElementById("v_fec_obtained").innerText = vO.fecVenc; }
-
-                    else { document.getElementById("inst_paso_solicitar").style.display = "block"; document.getElementById("inst_paso_obtener").style.display = "none"; document.getElementById("inst_paso_tomado").style.display = "none"; }
-
+                    
+                    if (vA) { 
+                        document.getElementById("inst_paso_solicitar").style.display = "none"; 
+                        document.getElementById("inst_paso_obtener").style.display = "none"; 
+                        document.getElementById("inst_paso_tomado").style.display = "block"; 
+                        document.getElementById("v_code_active").innerText = vA.num; 
+                        document.getElementById("form_sub_uso").style.display = "none"; 
+                        document.getElementById("form_sub_canc").style.display = "none"; 
+                    } else if (vO) { 
+                        document.getElementById("inst_paso_solicitar").style.display = "none"; 
+                        document.getElementById("inst_paso_obtener").style.display = "block"; 
+                        document.getElementById("inst_paso_tomado").style.display = "none"; 
+                        document.getElementById("v_code_obtained").innerText = vO.num; 
+                        document.getElementById("v_fec_obtained").innerText = vO.fecVenc; 
+                    } else { 
+                        document.getElementById("inst_paso_solicitar").style.display = "block"; 
+                        document.getElementById("inst_paso_obtener").style.display = "none"; 
+                        document.getElementById("inst_paso_tomado").style.display = "none"; 
+                    }
                 }
-
-            }
-
-        }
 
     </script>
 
