@@ -499,7 +499,7 @@
             aplicarImagenesPersonalizadas();
         }
 
-      function abrirPestanaDetalle(tipo) {
+        function abrirPestanaDetalle(tipo) {
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             let titulo = "Detalles de Vales";
             let datosMostrar = [];
@@ -778,6 +778,7 @@
                 }
             }
         }
+
         function editarValeAdmin(num) {
             let v = vales.find(item => item.num === num && item.dept === currentUser.dept);
             if (!v) return alert("Vale no encontrado.");
@@ -982,36 +983,28 @@
             }
         }
 
-      function obtenerValeLibre() {
-            // 1. Validar primero si el usuario ya tiene un vale activo en curso
+        function obtenerValeLibre() {
             let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
             if (valeActivo) {
                 return alert("Ya tienes un vale activo en curso.");
             }
 
-            // 2. Buscamos TODOS los vales que estén realmente libres en este momento
             let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
-            
             if (libresDisponibles.length === 0) {
                 return alert("No hay vales libres en este momento.");
             }
 
-            // 3. Tomamos siempre el PRIMER vale disponible de la lista fresca
             let libre = libresDisponibles[0];
-
-            // 4. Doble validación de seguridad: Verificamos por ID/número que siga libre antes de asignarlo
             let valeReal = vales.find(v => v.num === libre.num && v.dept === currentUser.dept);
             
             if (valeReal && valeReal.est === "libre") {
-                // Si todavía está libre, se lo asignamos de forma exclusiva
                 valeReal.est = "obtenido"; 
                 valeReal.usrNombre = currentUser.nombre; 
                 valeReal.usrCc = currentUser.cc; 
-                saveData(); // Guarda y sincroniza de inmediato
+                saveData(); 
             } else {
-                // Si la otra persona le ganó por milisegundos, le avisamos amablemente que intente de nuevo
                 alert("Este vale acaba de ser tomado por otra persona en este instante. Por favor presiona nuevamente el botón para asignarte el siguiente disponible.");
-                cargarDatosNube(); // Recarga los datos reales de la nube al instante
+                cargarDatosNube(); 
             }
         }
 
@@ -1059,27 +1052,20 @@
             }
         }
 
-        // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
         function descargarReporteExcel() {
             if (currentUser.rol !== "admin") return;
             const filtro = document.getElementById("export_filter").value;
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
             
             if (filtro === "usados") {
-                // Filtramos solo los usados que NO han sido descargados todavía
                 valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
-                
                 if (valesDept.length === 0) {
                     return alert("No hay nuevos vales usados pendientes por descargar.");
                 }
-
-                // Marcamos cada uno de estos vales como descargados
                 valesDept.forEach(v => {
                     let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
                     if (valeReal) valeReal.descargadoUsado = true;
                 });
-
-                // Guardamos el cambio en la nube y localStorage
                 saveData();
             } else {
                 if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
@@ -1108,88 +1094,78 @@
             XLSX.writeFile(workbook, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.xlsx`);
         }
 
-       function renderAdmin() {
-    const s = document.getElementById("search_user").value.toLowerCase();
-    const tbU = document.getElementById("tbl_usuarios"); 
-    tbU.innerHTML = "";
+        function renderAdmin() {
+            const s = document.getElementById("search_user").value.toLowerCase();
+            const tbU = document.getElementById("tbl_usuarios"); 
+            tbU.innerHTML = "";
 
-    // 1. Recopilar usuarios únicos combinando la lista de registros y los que han usado vales
-    let mapaPersonal = new Map();
+            let mapaPersonal = new Map();
+            usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
+                mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
+            });
 
-    // Primero agregamos los registrados oficialmente
-    usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
-        mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
-    });
+            vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
+                if (!mapaPersonal.has(v.usrCc)) {
+                    mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
+                }
+            });
 
-    // Luego agregamos a los que aparecen en los vales usados/asignados pero no estaban en la lista
-    vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
-        if (!mapaPersonal.has(v.usrCc)) {
-            mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
+            let personalUnificado = Array.from(mapaPersonal.values());
+            
+            personalUnificado.forEach(u => {
+                if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
+                    tbU.innerHTML += `
+                        <tr>
+                            <td>${u.nombre}</td>
+                            <td>${u.cc}</td>
+                            <td>
+                                <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
+                            </td>
+                        </tr>`;
+                }
+            });
+
+            if (personalUnificado.length === 0) {
+                tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
+            }
+
+            const filtro = document.getElementById("export_filter").value;
+            const tbI = document.getElementById("tbl_inventario"); 
+            tbI.innerHTML = "";
+            
+            let vd = vales.filter(v => v.dept === currentUser.dept);
+            if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
+            else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
+            else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
+            else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
+
+            vd.forEach(v => {
+                let badge = "badge-libre"; 
+                if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
+                else if(v.est === "usado") badge="badge-usado"; 
+                else if(v.est === "cancelado") badge="badge-canc";
+                else if(v.est === "bloqueado") badge="badge-bloqueado";
+                
+                let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
+                
+                if (v.est === "cancelado" || v.est === "libre") {
+                    botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
+                }
+                
+                if (v.est === "bloqueado" || v.est === "cancelado") {
+                    botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
+                }
+
+                tbI.innerHTML += `
+                    <tr>
+                        <td><strong>${v.num}</strong></td>
+                        <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
+                        <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
+                        <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
+                        <td>${botonesAccion}</td>
+                    </tr>`;
+            });
         }
-    });
-
-    // 2. Dibujar la tabla unificada de personal
-    let personalUnificado = Array.from(mapaPersonal.values());
-    
-    personalUnificado.forEach(u => {
-        if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
-            tbU.innerHTML += `
-                <tr>
-                    <td>${u.nombre}</td>
-                    <td>${u.cc}</td>
-                    <td>
-                        <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
-                    </td>
-                </tr>`;
-        }
-    });
-
-    if (personalUnificado.length === 0) {
-        tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
-    }
-
-    // --- Filtro del Inventario General ---
-    const filtro = document.getElementById("export_filter").value;
-    const tbI = document.getElementById("tbl_inventario"); 
-    tbI.innerHTML = "";
-    
-    let vd = vales.filter(v => v.dept === currentUser.dept);
-    if (filtro === "usados") vd = vd.filter(v => v.est === "usado");
-    else if (filtro === "libres") vd = vd.filter(v => v.est === "libre");
-    else if (filtro === "asignados") vd = vd.filter(v => v.est !== "libre");
-    else if (filtro === "cancelados") vd = vd.filter(v => v.est === "cancelado");
-
-    vd.forEach(v => {
-        let badge = "badge-libre"; 
-        if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
-        else if(v.est === "usado") badge="badge-usado"; 
-        else if(v.est === "cancelado") badge="badge-canc";
-        else if(v.est === "bloqueado") badge="badge-bloqueado";
-        
-        let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
-        
-        if (v.est === "cancelado" || v.est === "libre") {
-            botonesAccion += ` <button onclick="bloquearVale('${v.num}')" class="btn-warning" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Bloquear Temporalmente">🔒 Bloquear</button>`;
-        }
-        
-        if (v.est === "bloqueado") {
-            botonesAccion += ` <button onclick="liberarValeBloqueado('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Desbloquear / Liberar">♻️ Liberar</button>`;
-        }
-
-        if (v.est === "cancelado") {
-            botonesAccion += ` <button onclick="hacerValeLibre('${v.num}')" class="btn-sec" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Devolver a Libre">♻️ Liberar</button>`;
-        }
-
-        tbI.innerHTML += `
-            <tr>
-                <td><strong>${v.num}</strong></td>
-                <td><span class="badge ${badge}">${v.est.toUpperCase()}</span></td>
-                <td>${v.usrNombre ? v.usrNombre+" ("+v.usrCc+")" : "---"}</td>
-                <td>${v.fechaCarga ? "Carga: "+v.fechaCarga : (v.fechaHora||"Venc: "+v.fecVenc)}</td>
-                <td>${botonesAccion}</td>
-            </tr>`;
-    });
-}
 
         function render() {
             let titulo = currentUser ? "Asignación de Vales " + currentUser.dept.charAt(0).toUpperCase() + currentUser.dept.slice(1) : "Asignación de Vales";
@@ -1212,7 +1188,6 @@
                     const asignadosTotal = vd.filter(v => v.est !== "libre" && v.est !== "bloqueado");
                     document.getElementById("m_asig").innerText = asignadosTotal.length;
                     document.getElementById("m_asig_curso").innerText = asignadosTotal.filter(v => v.est === "obtenido" || v.est === "asignado").length + " en curso";
-                    // Contador de usados solo muestra los que faltan por descargar
                     document.getElementById("m_usados").innerText = vd.filter(v => v.est === "usado" && !v.descargadoUsado).length;
                     document.getElementById("m_canc").innerText = vd.filter(v => v.est === "cancelado").length;
                 } else {
