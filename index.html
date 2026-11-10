@@ -524,24 +524,14 @@
 
 
 
-                <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
-
-                    <label style="font-size:13px; font-weight:600;">Motivo de cancelación:</label>
-
+               <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+                    <label style="font-size:13px; font-weight:600;">Selecciona el motivo de cancelación:</label>
                     <select id="v_motivo_cancelacion">
-
-                        <option value="Vale inactivo">Vale inactivo / Rechazado</option>
-
-                        <option value="No necesité el taxi">No necesité el taxi</option>
-
-                        <option value="Cirugía cancelada">Cirugía cancelada</option>
-
-                        <option value="Otro motivo">Otro motivo</option>
-
+                        <option value="Cirugía cancelada">La cirugía se cancela (Libera el vale)</option>
+                        <option value="No lo usé">No lo usé (Libera el vale)</option>
+                        <option value="Vale bloqueado por los moviles">Vale bloqueado por los móviles (Bloqueo temporal)</option>
                     </select>
-
                     <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
-
                 </div>
 
             </div>
@@ -1757,6 +1747,33 @@ function tomarVale() {
                 alert("✅ ¡El uso del vale ha sido registrado con éxito!"); 
             } else {
                 alert("⚠️ No se encontró un vale activo para registrar.");
+            }
+        }
+        function confirmarCancelacion() {
+            const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
+            if (!v) {
+                return alert("⚠️ No se encontró un vale activo para cancelar.");
+            }
+
+            const motivoSeleccionado = document.getElementById("v_motivo_cancelacion").value;
+            v.motivo = motivoSeleccionado;
+            v.fechaHora = new Date().toLocaleString("es-CO");
+
+            // Si selecciona la opción 3, se bloquea temporalmente
+            if (motivoSeleccionado === "Vale bloqueado por los moviles") {
+                v.est = "bloqueado";
+                saveData();
+                render();
+                alert("🔒 El vale ha quedado bloqueado temporalmente hasta que el administrador lo gestione.");
+            } else {
+                // Para las otras opciones (Cirugía cancelada, No lo usé), el vale se libera
+                v.est = "libre";
+                v.usrNombre = "";
+                v.usrCc = "";
+                v.valor = "";
+                saveData();
+                render();
+                alert("✅ El vale ha sido liberado exitosamente.");
             }
         }
 
