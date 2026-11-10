@@ -1292,39 +1292,55 @@ function editarValeAdmin(num) {
             let v = vales.find(item => item.num === num && item.dept === currentUser.dept);
             if (!v) return alert("Vale no encontrado.");
 
-            let nuevoEstado = prompt(`Editando Vale: ${v.num}\nEstado actual: ${v.est.toUpperCase()}\nFuncionario actual: ${v.usrNombre || 'Ninguno'}\nValor actual: ${v.valor || '0'}\n\nIngresa el nuevo estado (libre, asignado, usado o cancelado):`, v.est);
-            
+            // 1. Editar el Estado
+            let nuevoEstado = prompt(`Editando Vale: ${v.num}\nEstado actual: ${v.est.toUpperCase()}\n\nIngresa el nuevo estado (libre, asignado, usado, cancelado):`, v.est);
             if (!nuevoEstado) return;
             nuevoEstado = nuevoEstado.trim().toLowerCase();
 
             if (!['libre', 'asignado', 'obtenido', 'usado', 'cancelado'].includes(nuevoEstado)) {
                 return alert("Estado no válido. Debe ser: libre, asignado, usado o cancelado.");
             }
+            v.est = nuevoEstado;
 
-            if (nuevoEstado === 'usado') {
-                let nuevoValor = prompt("Ingresa el valor total pagado ($ COP):", v.valor || "");
-                if (!nuevoValor || isNaN(nuevoValor)) return alert("Debes ingresar un valor numérico válido.");
-                v.valor = Number(nuevoValor);
-                v.est = "usado";
-                v.fechaHora = new Date().toLocaleString("es-CO");
-            } else if (nuevoEstado === 'libre') {
-                v.est = "libre";
+            // 2. Si queda libre, limpiamos todos los datos del funcionario y valores
+            if (nuevoEstado === 'libre') {
                 v.usrNombre = "";
                 v.usrCc = "";
                 v.motivo = "";
                 v.valor = "";
                 v.fechaHora = "";
             } else {
-                v.est = nuevoEstado;
+                // 3. Editar el Nombre del Funcionario
                 let nuevoNombre = prompt("Nombre del funcionario asignado:", v.usrNombre || "");
+                if (nuevoNombre !== null) v.usrNombre = nuevoNombre.trim();
+
+                // 4. Editar la Cédula del Funcionario
                 let nuevaCc = prompt("Cédula del funcionario:", v.usrCc || "");
-                if (nuevoNombre !== null) v.usrNombre = nuevoNombre;
-                if (nuevaCc !== null) v.usrCc = nuevaCc;
-                v.fechaHora = new Date().toLocaleString("es-CO");
+                if (nuevaCc !== null) v.usrCc = nuevaCc.trim();
+
+                // 5. Si el estado es 'usado' o si ya tenía valor, pedir/actualizar el valor en dinero
+                if (nuevoEstado === 'usado') {
+                    let nuevoValor = prompt("Ingresa el valor total pagado en pesos ($ COP):", v.valor || "");
+                    if (nuevoValor !== null && nuevoValor !== "") {
+                        if (isNaN(nuevoValor)) {
+                            alert("⚠️ El valor ingresado no es válido, pero se guardará el estado.");
+                        } else {
+                            v.valor = Number(nuevoValor);
+                        }
+                    }
+                }
+
+                // 6. Editar la Fecha y Hora del registro
+                let nuevaFechaHora = prompt("Fecha y hora del registro (Ej: DD/MM/YYYY, HH:MM:SS):", v.fechaHora || new Date().toLocaleString("es-CO"));
+                if (nuevaFechaHora !== null) v.fechaHora = nuevaFechaHora;
             }
 
+            // Guardar cambios en almacenamiento y nube
             saveData();
-            alert("✅ ¡Vale actualizado con éxito!");
+            alert("✅ ¡Vale modificado y actualizado con éxito!");
+            
+            // Recargar la ventana flotante para ver los cambios reflejados de inmediato
+            location.reload();
         }
 
         function eliminarTodosLibresGlobal() {
