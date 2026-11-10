@@ -1046,12 +1046,18 @@
             } else {
                 datosMostrar.forEach(v => {
                     let nombreTxt = v.usrNombre ? v.usrNombre + " (" + v.usrCc + ")" : "---";
-                    let fechaTxt = v.fechaHora || "Carga: " + (v.fechaCarga || 'N/A');
+                    let fechaTxt = v.fechaHora || (v.fecVenc ? "Venc: " + v.fecVenc : "Carga: " + (v.fechaCarga || 'N/A'));
                     let valorTxt = v.est === 'usado' ? '$ ' + Number(v.valor || 0).toLocaleString('es-CO') : (v.est === 'cancelado' ? (v.motivo || 'Cancelado') : '---');
                     
-                    let btnAccion = (esAdmin && (v.est === 'asignado' || v.est === 'obtenido' || v.est === 'usado' || v.est === 'cancelado')) 
-                        ? `<button onclick="editarValeAdmin('${v.num}'); cerrarModalDetalle();" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">✏️ Editar</button>` 
-                        : (esAdmin && v.est === 'libre' ? `<button onclick="eliminarValeLibreGlobal('${v.num}'); cerrarModalDetalle();" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">🗑️ Eliminar</button>` : '---');
+                    let btnAccion = '---';
+                    if (esAdmin) {
+                        if (v.est === 'libre') {
+                            // Botón para asignar este vale libre específico de inmediato
+                            btnAccion = `<button onclick="asignarValeEspecifico('${v.num}'); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">➕ Asignar</button> <button onclick="eliminarValeLibreGlobal('${v.num}'); cerrarModalDetalle();" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">🗑️</button>`;
+                        } else if (v.est === 'asignado' || v.est === 'obtenido' || v.est === 'usado' || v.est === 'cancelado') {
+                            btnAccion = `<button onclick="editarValeAdmin('${v.num}'); cerrarModalDetalle();" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold;">✏️ Editar</button>`;
+                        }
+                    }
 
                     filasHtml += `
                         <tr class="fila-general">
@@ -1080,7 +1086,7 @@
 
                     ${esAdmin && tipo === 'libres' ? `
                         <div style="margin-bottom:15px;">
-                            <button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; width:auto;">➕ Asignar Vale Libre a Funcionario</button>
+                            <button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; width:auto;">➕ Asignar Primer Vale Libre Disponible</button>
                         </div>
                     ` : ''}
 
@@ -1109,20 +1115,6 @@
             document.body.appendChild(modalDiv);
         }
 
-        function cerrarModalDetalle() {
-            let m = document.getElementById("modal_detalles_dinamico");
-            if (m) m.remove();
-        }
-
-        function filtrarModalGeneral() {
-            const texto = document.getElementById("filtro_general_modal").value.toLowerCase();
-            const filas = document.querySelectorAll("#modal_detalles_dinamico .fila-general");
-            filas.forEach(fila => {
-                fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
-            });
-        }
-
-
         // FUNCIONES GLOBALES DE PAPELERA Y GESTIÓN
 
         function eliminarValeLibreGlobal(num) {
@@ -1149,6 +1141,41 @@
 
         }
 
+        function asignarValeEspecifico(num) {
+            let vale = vales.find(v => v.num === num && v.dept === currentUser.dept && v.est === 'libre');
+            if (!vale) {
+                return alert("⚠️ Este vale ya no está disponible o no se encontró.");
+            }
+
+            let nombreFuncionario = prompt(`Asignando el vale específico: ${vale.num}\n\nIngresa el Nombre Completo del funcionario:`);
+            if (!nombreFuncionario || !nombreFuncionario.trim()) return;
+
+            let ccFuncionario = prompt("Ingresa el número de Cédula del funcionario:");
+            if (!ccFuncionario || !ccFuncionario.trim()) return;
+
+            let tipoRegistro = prompt("¿Cómo deseas registrar este vale?\n\n1. Asignado / En curso\n2. Usado (Ingresar valor pagado)\n\nEscribe 1 o 2:", "1");
+            
+            if (tipoRegistro === "2") {
+                let valorUsado = prompt("Ingresa el valor total pagado ($ COP):", "25000");
+                if (!valorUsado || isNaN(valorUsado)) return alert("Valor no válido.");
+                
+                vale.est = "usado";
+                vale.valor = Number(valorUsado);
+            } else {
+                vale.est = "asignado";
+                vale.valor = "";
+            }
+
+            vale.usrNombre = nombreFuncionario.trim();
+            vale.usrCc = ccFuncionario.trim();
+            vale.fechaHora = new Date().toLocaleString("es-CO");
+            vale.motivo = "";
+
+            saveData();
+            alert("✅ ¡Vale asignado y registrado con éxito!");
+            abrirPestanaDetalle('libres'); // Recarga el modal actualizando la vista
+        }
+        
 function editarValeAdmin(num) {
             let v = vales.find(item => item.num === num && item.dept === currentUser.dept);
             if (!v) return alert("Vale no encontrado.");
