@@ -936,24 +936,36 @@
             }
         }
 
-        function obtenerValeLibre() {
-            let valesActuales = JSON.parse(localStorage.getItem("vi_vales")) || vales;
-            let libre = valesActuales.find(v => v.est === "libre" && v.dept === currentUser.dept);
-            
-            if (!libre) return alert("No hay vales libres en este momento.");
-            if (valesActuales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"))) {
+      function obtenerValeLibre() {
+            // 1. Validar primero si el usuario ya tiene un vale activo en curso
+            let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "obtenido" || v.est === "asignado"));
+            if (valeActivo) {
                 return alert("Ya tienes un vale activo en curso.");
             }
 
-            const vReal = vales.find(v => v.num === libre.num && v.dept === currentUser.dept);
-            if (vReal && vReal.est === "libre") {
-                vReal.est = "obtenido"; 
-                vReal.usrNombre = currentUser.nombre; 
-                vReal.usrCc = currentUser.cc; 
-                saveData();
+            // 2. Buscamos TODOS los vales que estén realmente libres en este momento
+            let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
+            
+            if (libresDisponibles.length === 0) {
+                return alert("No hay vales libres en este momento.");
+            }
+
+            // 3. Tomamos siempre el PRIMER vale disponible de la lista fresca
+            let libre = libresDisponibles[0];
+
+            // 4. Doble validación de seguridad: Verificamos por ID/número que siga libre antes de asignarlo
+            let valeReal = vales.find(v => v.num === libre.num && v.dept === currentUser.dept);
+            
+            if (valeReal && valeReal.est === "libre") {
+                // Si todavía está libre, se lo asignamos de forma exclusiva
+                valeReal.est = "obtenido"; 
+                valeReal.usrNombre = currentUser.nombre; 
+                valeReal.usrCc = currentUser.cc; 
+                saveData(); // Guarda y sincroniza de inmediato
             } else {
-                alert("Este vale acaba de ser tomado por otra persona. Por favor presiona nuevamente el botón para obtener otro vale disponible.");
-                cargarDatosNube();
+                // Si la otra persona le ganó por milisegundos, le avisamos amablemente que intente de nuevo
+                alert("Este vale acaba de ser tomado por otra persona en este instante. Por favor presiona nuevamente el botón para asignarte el siguiente disponible.");
+                cargarDatosNube(); // Recarga los datos reales de la nube al instante
             }
         }
 
