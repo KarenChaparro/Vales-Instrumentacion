@@ -1559,34 +1559,28 @@ function editarValeAdmin(num) {
 
      function obtenerValeLibre() {
             try {
-                // 1. Forzar lectura fresca de los datos actuales del almacenamiento local
                 if (typeof loadData === "function") {
-                    loadData();
+                    cargarDatosNube();
                 }
 
-                // 2. Verificar si el usuario actual ya tiene un vale activo en curso
                 let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "asignado" || v.est === "obtenido"));
                 if (valeActivo) {
-                    alert("⚠️ Ya tienes un vale activo en curso (Nº " + valeActivo.num + ").");
+                    alert("⚠️ Ya tienes un vale activo en curso.");
                     return;
                 }
 
-                // 3. Buscar TODOS los vales libres disponibles para este departamento
                 let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
-                
                 if (libresDisponibles.length === 0) {
-                    alert("⚠️ No hay vales libres disponibles en este momento.");
+                    alert("⚠️ No hay vales libres disponibles.");
                     return;
                 }
 
-                // 4. Bucle de seguridad: buscar el primer candidato que esté 100% libre en el array global
                 let valeSeleccionado = null;
                 for (let i = 0; i < libresDisponibles.length; i++) {
-                    let numCandidato = libresDisponibles[i].num;
-                    let verificacionReal = vales.find(v => v.num === numCandidato && v.dept === currentUser.dept && v.est === "libre");
-                    if (verificacionReal) {
-                        valeSeleccionado = verificacionReal;
-                        break; // Encontramos uno exclusivo y libre, salimos
+                    let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
+                    if (candidato) {
+                        valeSeleccionado = candidato;
+                        break;
                     }
                 }
 
@@ -1596,25 +1590,19 @@ function editarValeAdmin(num) {
                     return;
                 }
 
-                // 5. Asignarlo de manera exclusiva a este usuario
-                valeSeleccionado.est = "asignado"; 
+                // Asignar como "obtenido" para activar tu botón original de "Tomar Vale"
+                valeSeleccionado.est = "obtenido"; 
                 valeSeleccionado.usrNombre = currentUser.nombre; 
                 valeSeleccionado.usrCc = currentUser.cc; 
                 valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
                 valeSeleccionado.motivo = "";
                 
-                // 6. Guardar cambios inmediatamente para bloquearlo ante los demás
-                if (typeof saveData === "function") {
-                    saveData();
-                }
-
-                // 7. Notificar y recargar para mostrar el vale asignado con tus botones
-                alert("✅ ¡Te fue asignado con éxito el vale número " + valeSeleccionado.num + "!");
-                location.reload();
+                saveData();
+                render();
 
             } catch (error) {
-                console.error("Error en obtenerValeLibre:", error);
-                alert("⚠️ Ocurrió un error al tomar el vale. La página se recargará.");
+                console.error("Error:", error);
+                alert("⚠️ Ocurrió un error. La página se recargará.");
                 location.reload();
             }
         }
