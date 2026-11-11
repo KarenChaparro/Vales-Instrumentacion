@@ -1348,59 +1348,61 @@ function editarValeAdmin(num) {
             if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora.");
             
             const existe = usuarios.find(u => u.cc === cc);
-            if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado.");
+            if (existe) {
+                return alert(existe.dept.trim().toLowerCase() !== dept ? `Esta cédula ya está registrada en el departamento de ${existe.dept.toUpperCase()}.` : "Ya estás registrado. Ve a la pestaña 'Ingresar'.");
+            }
             
             const newUser = { cc, nombre, dept, rol: "funcionario" };
             usuarios.push(newUser); 
             currentUser = newUser; 
             
-            saveData(); // Guarda en nube y localStorage inmediatamente
-            alert(`¡Registro exitoso en ${dept.toUpperCase()}! Ya puedes iniciar sesión.`);
+            saveData(); 
+            alert(`¡Registro exitoso en ${dept.toUpperCase()}! Ya puedes operar en el sistema.`);
             
-            // Redirigir automáticamente a la vista de login o refrescar
+            // Redirigir limpiando los campos
             logout();
         }
 
 
 
         function login() {
-
-            const dept = document.getElementById("l_dept").value, cc = document.getElementById("l_cc").value.trim(), pin = document.getElementById("l_pin").value.trim();
-
-            if (!cc) return alert("Ingresa tu cédula.");
-
+            const deptSelect = document.getElementById("l_dept").value;
+            const cc = document.getElementById("l_cc").value.trim();
+            const pin = document.getElementById("l_pin").value.trim();
             
+            if (!cc) return alert("Ingresa tu cédula.");
+            
+            // Limpiar y normalizar el departamento seleccionado
+            const deptLimpio = deptSelect.trim().toLowerCase();
 
+            // Si es Administradora
             if (ADMIN_ROLES[cc]) {
-
-                if (ADMIN_ROLES[cc] !== dept) return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
-
-                if (pin === (adminPins[cc] || "1234")) {
-
-                    currentUser = { cc, nombre: `Admin ${dept.toUpperCase()}`, dept, rol: "admin" };
-
-                    document.getElementById("l_pin").value = ""; saveData(); return;
-
+                if (ADMIN_ROLES[cc].trim().toLowerCase() !== deptLimpio) {
+                    return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
                 }
-
+                if (pin === (adminPins[cc] || "1234")) {
+                    currentUser = { cc, nombre: `Admin ${deptLimpio.toUpperCase()}`, dept: deptLimpio, rol: "admin" };
+                    document.getElementById("l_pin").value = ""; 
+                    saveData(); 
+                    return;
+                }
                 return alert("PIN incorrecto.");
-
+            }
+            
+            // Buscar al funcionario normal (normalizando también el departamento almacenado)
+            const usr = usuarios.find(u => u.cc === cc);
+            if (!usr) {
+                return alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
             }
 
+            // Validar departamento sin importar mayúsculas o espacios
+            if (usr.dept.trim().toLowerCase() !== deptLimpio) {
+                return alert(`Estás registrado en el departamento de ${usr.dept.toUpperCase()}. Selecciona el departamento correcto.`);
+            }
             
-
-            const usr = usuarios.find(u => u.cc === cc);
-
-            if (!usr) return alert("Usuario no encontrado. Regístrate.");
-
-            if (usr.dept !== dept) return alert(`Estás registrado en ${usr.dept.toUpperCase()}.`);
-
-            
-
-            currentUser = usr; saveData();
-
+            currentUser = usr; 
+            saveData();
         }
-
 
 
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
