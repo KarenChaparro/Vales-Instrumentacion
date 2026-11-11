@@ -688,14 +688,7 @@
 
         let vales = [];
 
-        // 1. Detectar si estamos en enfermería o instrumentación automáticamente
-const esEnfermeria = window.location.hostname.includes('enfermeria');
-const sufijo = esEnfermeria ? '_enfermeria' : '_instrumentacion';
-
-// 2. Tus líneas originales adaptadas con el sufijo:
-let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres" + sufijo)) || [];
-
-let currentUser = JSON.parse(localStorage.getItem("vi_session" + sufijo)) || null;
+      let papeleraLibres = JSON.parse(localStorage.getItem("vi_papelera_libres")) || [];
 
         
 
