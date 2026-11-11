@@ -483,48 +483,29 @@
 
 
             <div id="inst_paso_tomado" style="display:none;">
-
                 <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 15px;">
-
                     🔒 Tienes un vale activo en curso. Debes registrar su resultado.
-
                 </div>
-
                 <div class="vale-box">
-
                     <span id="v_code_active">---</span>
-
                     <button class="btn-copy" onclick="copiarCodigoVale('active')">📋 Copiar</button>
-
                 </div>
-
                 <h3 style="margin-top:20px;">¿Qué ocurrió con el taxi?</h3>
-
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-
                     <button onclick="mostrarOpcion('uso')" class="btn-sec">✅ Usó el vale</button>
-
                     <button onclick="accionNoUsoVale()" class="btn-neutral">↩️ No lo usó</button>
-
                     <button onclick="mostrarOpcion('canc')" class="btn-danger">🚫 Cancelado</button>
-
                 </div>
 
-
-
+                <!-- ESTE ES EL CAMPO QUE SE DEBE MOSTRAR AL DARLE CLIC A "USÓ EL VALE" -->
                 <div id="form_sub_uso" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
-
                     <label style="font-size:13px; font-weight:600;">Ingresa el valor total pagado ($ COP):</label>
-
                     <input type="number" id="v_valor_servicio" placeholder="Ej: 22000">
-
                     <button onclick="confirmarUso()">Confirmar Registro</button>
-
                 </div>
 
-
-
-               <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
+                <!-- Formulario de cancelación -->
+                <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
                     <label style="font-size:13px; font-weight:600;">Selecciona el motivo de cancelación:</label>
                     <select id="v_motivo_cancelacion">
                         <option value="Cirugía cancelada">La cirugía se cancela (Libera el vale)</option>
@@ -533,7 +514,6 @@
                     </select>
                     <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
                 </div>
-
             </div>
 
         </div>
@@ -1719,6 +1699,22 @@ function tomarVale() {
                 render();
                 alert("✅ El vale ha sido liberado exitosamente.");
             }
+        }
+
+        function mostrarOpcion(opc) {
+            const subUso = document.getElementById("form_sub_uso");
+            const subCanc = document.getElementById("form_sub_canc");
+            
+            if (subUso) {
+                subUso.style.display = (opc === 'uso') ? "block" : "none";
+            }
+            if (subCanc) {
+                subCanc.style.display = (opc === 'canc') ? "block" : "none";
+            }
+        }
+
+        function confirmarUso() {
+            // ... aquí sigue tu función confirmarUso actual ...
         }
 
         function confirmarUso() {
