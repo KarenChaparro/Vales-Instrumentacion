@@ -1597,6 +1597,24 @@ function editarValeAdmin(num) {
             }
         }
 
+        function asignarValeManualDirecto() {
+    // Calculamos el número único basado estrictamente en el último registro guardado
+    let nuevoNumero = obtenerSiguienteNumeroVale();
+
+    // Creamos el objeto del nuevo vale con ese número garantizado como único
+    let nuevoVale = {
+        numero: nuevoNumero,
+        // ... tus otros campos (cédula, nombre, etc.)
+    };
+
+    // Lo agregamos a la lista y guardamos de inmediato en el localStorage
+    vales.push(nuevoVale);
+    localStorage.setItem("vi_vales" + sufijo, JSON.stringify(vales));
+    
+    // Recargas tu tabla o vista
+    renderizarTabla();
+}
+        
         // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
 
         function descargarReporteExcel() {
