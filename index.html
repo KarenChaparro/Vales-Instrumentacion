@@ -1053,12 +1053,16 @@
                         <button onclick="document.getElementById('modal_detalles_dinamico').remove();" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; width:auto;">⬅️ Cerrar</button>
                     </div>
 
-                    ${esAdmin && tipo === 'libres' ? `
-                        <div style="margin-bottom:15px;">
-                            <button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; width:auto;">➕ Asignar Primer Vale Libre Disponible</button>
-                        </div>
-                    ` : ''}
-
+                   ${esAdmin && tipo === 'libres' ? `
+    <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; width:auto;">➕ Asignar Primer Vale</button>
+        <button onclick="descargarReporteExcel()" style="background:#991b1b; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">📊 Descargar Excel</button>
+    </div>
+` : `
+    <div style="margin-bottom:15px;">
+        <button onclick="descargarReporteExcel()" style="background:#991b1b; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">📊 Descargar Excel</button>
+    </div>
+`}
                     <input type="text" id="filtro_general_modal" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarModalGeneral()" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1; font-size:14px; box-sizing:border-box;">
 
                     <div style="overflow-y:auto; flex-grow:1;">
