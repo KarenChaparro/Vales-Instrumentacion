@@ -506,14 +506,14 @@
 
                 <!-- Formulario de cancelación -->
                 <div id="form_sub_canc" style="display:none; margin-top:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #cbd5e1;">
-                    <label style="font-size:13px; font-weight:600;">Selecciona el motivo de cancelación:</label>
-                    <select id="v_motivo_cancelacion">
-                        <option value="Cirugía cancelada">La cirugía se cancela (Libera el vale)</option>
-                        <option value="No lo usé">No lo usé (Libera el vale)</option>
-                        <option value="Vale bloqueado por los moviles">Vale bloqueado por los móviles (Bloqueo temporal)</option>
-                    </select>
-                    <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
-                </div>
+    <label style="font-size:13px; font-weight:600;">Selecciona el motivo de cancelación:</label>
+    <select id="v_motivo_cancelacion">
+        <option value="Cirugía cancelada">La cirugía se cancela (Libera el vale)</option>
+        <option value="No lo usé">No lo usé (Libera el vale)</option>
+        <option value="Vale bloqueado por los moviles">Vale bloqueado por los móviles (Bloqueo temporal)</option>
+    </select>
+    <button onclick="confirmarCancelacion()" class="btn-danger">Confirmar Cancelación</button>
+</div>
             </div>
 
         </div>
@@ -1340,25 +1340,25 @@ function editarValeAdmin(num) {
 
 
         function register() {
-
-            const dept = document.getElementById("r_dept").value, nombre = document.getElementById("r_name").value.trim(), cc = document.getElementById("r_cc").value.trim();
-
-            if (!nombre || !cc) return alert("Completa tu nombre y cédula.");
-
-            if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora.");
-
-            const existe = usuarios.find(u => u.cc === cc);
-
-            if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado.");
-
+            const dept = document.getElementById("r_dept").value.trim().toLowerCase();
+            const nombre = document.getElementById("r_name").value.trim();
+            const cc = document.getElementById("r_cc").value.trim();
             
-
+            if (!nombre || !cc) return alert("Completa tu nombre y cédula.");
+            if (ADMIN_ROLES[cc]) return alert("Esta cédula es de Administradora.");
+            
+            const existe = usuarios.find(u => u.cc === cc);
+            if (existe) return alert(existe.dept !== dept ? `Cédula registrada en ${existe.dept.toUpperCase()}.` : "Usuario ya registrado.");
+            
             const newUser = { cc, nombre, dept, rol: "funcionario" };
-
-            usuarios.push(newUser); currentUser = newUser; saveData();
-
-            alert(`¡Registro exitoso en ${dept.toUpperCase()}!`);
-
+            usuarios.push(newUser); 
+            currentUser = newUser; 
+            
+            saveData(); // Guarda en nube y localStorage inmediatamente
+            alert(`¡Registro exitoso en ${dept.toUpperCase()}! Ya puedes iniciar sesión.`);
+            
+            // Redirigir automáticamente a la vista de login o refrescar
+            logout();
         }
 
 
@@ -1748,21 +1748,21 @@ function tomarVale() {
         function confirmarCancelacion() {
             const v = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && v.est === "asignado");
             if (!v) {
-                return alert("⚠️ No se encontró un vale activo para cancelar.");
+                return alert("⚠️ No se encontró un vale activo en curso para cancelar.");
             }
 
             const motivoSeleccionado = document.getElementById("v_motivo_cancelacion").value;
             v.motivo = motivoSeleccionado;
             v.fechaHora = new Date().toLocaleString("es-CO");
 
-            // Si selecciona la opción 3, se bloquea temporalmente
+            // Si selecciona la opción de bloqueo temporal por los móviles
             if (motivoSeleccionado === "Vale bloqueado por los moviles") {
-                v.est = "bloqueado";
+                v.est = "bloqueado"; // Queda bloqueado para que el admin lo gestione
                 saveData();
                 render();
                 alert("🔒 El vale ha quedado bloqueado temporalmente hasta que el administrador lo gestione.");
             } else {
-                // Para las otras opciones (Cirugía cancelada, No lo usé), el vale se libera
+                // Para Cirugía cancelada y No lo usé, el vale se libera automáticamente
                 v.est = "libre";
                 v.usrNombre = "";
                 v.usrCc = "";
