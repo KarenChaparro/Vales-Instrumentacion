@@ -1787,30 +1787,17 @@ function tomarVale() {
 
     let mapaPersonal = new Map();
 
-
-
-    // Primero agregamos los registrados oficialmente
-
-    usuarios.filter(u => u.dept === currentUser.dept && u.rol !== "admin").forEach(u => {
-
-        mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc, origen: 'registrado' });
-
+    // Agregar los registrados oficialmente limpiando el texto del departamento
+    usuarios.filter(u => u.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase() && u.rol !== "admin").forEach(u => {
+        mapaPersonal.set(u.cc, { nombre: u.nombre, cc: u.cc });
     });
 
-
-
-    // Luego agregamos a los que aparecen en los vales usados/asignados pero no estaban en la lista
-
-    vales.filter(v => v.dept === currentUser.dept && v.usrCc && v.usrNombre).forEach(v => {
-
+    // Agregar también a los que aparecen en los vales
+    vales.filter(v => v.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase() && v.usrCc && v.usrNombre).forEach(v => {
         if (!mapaPersonal.has(v.usrCc)) {
-
-            mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc, origen: 'vale' });
-
+            mapaPersonal.set(v.usrCc, { nombre: v.usrNombre, cc: v.usrCc });
         }
-
     });
-
 
 
     // 2. Dibujar la tabla unificada de personal
