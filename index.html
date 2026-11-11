@@ -1527,57 +1527,67 @@ function editarValeAdmin(num) {
 
 
 
-     function obtenerValeLibre() {
+    async function obtenerValeLibre() {
             try {
-                if (typeof loadData === "function") {
-                    loadData();
+                // Mostrar pantalla de carga para evitar que hagan doble clic
+                document.getElementById("loading_overlay").style.display = "flex";
+                document.getElementById("loading_overlay").innerText = "Verificando disponibilidad en tiempo real...";
+
+                // 1. Descargar los datos MÁS RECIENTES de la nube en este preciso milisegundo
+                const res = await fetch(SCRIPT_URL + "?action=getData", { method: "GET", redirect: "follow" });
+                const data = await res.json();
+                if (data.vales && data.vales.length > 0) {
+                    vales = data.vales; 
                 }
 
-                // Verificar si ya tiene un vale activo
-                let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept === currentUser.dept && (v.est === "asignado" || v.est === "obtenido"));
+                // 2. Verificar si este usuario ya tiene un vale activo en curso
+                let valeActivo = vales.find(v => v.usrCc === currentUser.cc && v.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase() && (v.est === "asignado" || v.est === "obtenido"));
                 if (valeActivo) {
+                    document.getElementById("loading_overlay").style.display = "none";
                     alert("⚠️ Ya tienes un vale activo en curso (Nº " + valeActivo.num + ").");
-                    return;
-                }
-
-                let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept === currentUser.dept);
-                if (libresDisponibles.length === 0) {
-                    alert("⚠️ No hay vales libres disponibles en este momento.");
-                    return;
-                }
-
-                let valeSeleccionado = null;
-                for (let i = 0; i < libresDisponibles.length; i++) {
-                    let candidato = vales.find(v => v.num === libresDisponibles[i].num && v.dept === currentUser.dept && v.est === "libre");
-                    if (candidato) {
-                        valeSeleccionado = candidato;
-                        break;
-                    }
-                }
-
-                if (!valeSeleccionado) {
-                    alert("⚠️ Este vale acaba de ser tomado por otro usuario. Intenta de nuevo.");
                     render();
                     return;
                 }
 
-                // Asignarlo temporalmente como "obtenido" para activar la tarjeta y el botón "Tomar Vale"
+                // 3. Buscar vales libres reales de su departamento
+                let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
+                
+                if (libresDisponibles.length === 0) {
+                    document.getElementById("loading_overlay").style.display = "none";
+                    alert("⚠️ No hay vales libres disponibles en este momento.");
+                    render();
+                    return;
+                }
+
+                // 4. Tomar de forma estricta el primer vale libre disponible
+                let valeSeleccionado = libresDisponibles[0];
+
+                // 5. Asignarlo temporalmente como "obtenido" para su tarjeta
                 valeSeleccionado.est = "obtenido"; 
                 valeSeleccionado.usrNombre = currentUser.nombre; 
                 valeSeleccionado.usrCc = currentUser.cc; 
                 valeSeleccionado.fechaHora = new Date().toLocaleString("es-CO");
                 valeSeleccionado.motivo = "";
                 
-                if (typeof saveData === "function") {
-                    saveData();
-                }
+                // 6. Guardar los cambios de inmediato en la nube para bloquearlo al instante
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "saveData", vales: vales, usuarios: usuarios, adminPins: adminPins })
+                });
 
+                document.getElementById("loading_overlay").style.display = "none";
+                document.getElementById("loading_overlay").innerText = "🔄 Sincronizando datos en la nube...";
+                
                 render();
+                alert("✅ ¡Se te ha asignado con éxito el vale número " + valeSeleccionado.num + "!");
 
             } catch (error) {
                 console.error("Error en obtenerValeLibre:", error);
-                alert("⚠️ Ocurrió un error al tomar el vale.");
-                render();
+                document.getElementById("loading_overlay").style.display = "none";
+                alert("⚠️ Ocurrió un error de conexión al tomar el vale. Inténtalo de nuevo.");
+                cargarDatosNube();
             }
         }
 
