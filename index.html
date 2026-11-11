@@ -1047,41 +1047,11 @@
             modalDiv.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:15px; box-sizing:border-box;";
             
             modalDiv.innerHTML = `
-    <div style="background:white; padding:25px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:100%; max-width:1000px; max-height:90vh; display:flex; flex-direction:column;">
-        
-        <!-- CABECERA: Título y Botones Arriba -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #8b1a2b; padding-bottom:12px; margin-bottom:15px;">
-            <h2 style="color:#8b1a2b; margin:0; font-size:20px;">${titulo} (${datosMostrar.length})</h2>
-            
-            <div style="display:flex; gap:6px; align-items:center;">
-                <button onclick="descargarReporteExcel()" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">📊 Descargar Excel</button>
-                <button onclick="document.getElementById('modal_detalles_dinamico').remove();" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">✕ Cerrar</button>
-            </div>
-        </div>
-
-        <!-- BUSCADOR ÚNICO -->
-        <input type="text" id="filtro_general_modal" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarModalGeneral()" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1; font-size:14px; box-sizing:border-box;">
-
-        <!-- TABLA DE DATOS -->
-        <div style="overflow-y:auto; flex-grow:1;">
-            <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr style="background:#f8fafc; color:#475569; text-align:left;">
-                        <th style="padding:10px;">Nº de Vale</th>
-                        <th style="padding:10px;">Estado</th>
-                        <th style="padding:10px;">Nombre</th>
-                        <th style="padding:10px;">Fecha y Hora</th>
-                        <th style="padding:10px;">Valor / Detalle</th>
-                        <th style="padding:10px;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filasHtml}
-                </tbody>
-            </table>
-        </div>
-    </div>
-`;
+                <div style="background:white; padding:25px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:100%; max-width:1000px; max-height:90vh; display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #8b1a2b; padding-bottom:12px; margin-bottom:15px;">
+                        <h2 style="color:#8b1a2b; margin:0; font-size:20px;">${titulo} (${datosMostrar.length})</h2>
+                        <button onclick="document.getElementById('modal_detalles_dinamico').remove();" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; width:auto;">⬅️ Cerrar</button>
+                    </div>
 
                    ${esAdmin && tipo === 'libres' ? `
     <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
