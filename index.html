@@ -1900,29 +1900,17 @@ function tomarVale() {
 
 
     vd.forEach(v => {
-        vd.forEach(v => {
-        // Lógica inteligente para mostrar la fecha según el estado actual del vale
-        let infoFecha = "";
-        if (v.est === "usado") {
-            infoFecha = `<span style="color:#059669; font-weight:600;">Uso:</span> ${v.fechaHora || 'N/A'}`;
-        } else if (v.est === "asignado" || v.est === "obtenido") {
-            infoFecha = `<span style="color:#d97706; font-weight:600;">Asignado:</span> ${v.fechaHora || 'N/A'}`;
-        } else if (v.est === "cancelado" || v.est === "bloqueado") {
-            infoFecha = `<span style="color:#dc2626; font-weight:600;">Cancelado:</span> ${v.fechaHora || 'N/A'}`;
-        } else {
-            infoFecha = `<span style="color:#4b5563; font-weight:600;">Carga:</span> ${v.fechaCarga || v.fechaHora || 'N/A'}`;
-        }
 
-        let badge = "badge-libre";
-        if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig";
-        else if(v.est === "usado") badge="badge-usado";
+        let badge = "badge-libre"; 
+
+        if(v.est === "obtenido" || v.est === "asignado") badge="badge-asig"; 
+
+        else if(v.est === "usado") badge="badge-usado"; 
+
         else if(v.est === "cancelado") badge="badge-canc";
+
         else if(v.est === "bloqueado") badge="badge-bloqueado";
 
-        let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px;">🗑️</button>`;
-
-        // Asegúrate de que en la celda de la fecha de tu tabla estés usando '${infoFecha}'
-    });
         
 
         let botonesAccion = `<button onclick="eliminarVale('${v.num}')" class="btn-danger" style="padding:2px 8px; font-size:11px; width:auto; margin:0;" title="Eliminar">🗑️</button>`;
