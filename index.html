@@ -1785,6 +1785,49 @@ function tomarVale() {
             }
         }
 
+        function editarUsuario(ccOriginal) {
+            // Buscar en la lista de usuarios oficiales
+            let user = usuarios.find(u => u.cc === ccOriginal && u.dept === currentUser.dept);
+            
+            let nombreActual = user ? user.nombre : "";
+            if (!user) {
+                let valeAsociado = vales.find(v => v.usrCc === ccOriginal && v.dept === currentUser.dept);
+                nombreActual = valeAsociado ? valeAsociado.usrNombre : "";
+            }
+
+            let nuevoNombre = prompt(`Editando Funcionario (Cédula actual: ${ccOriginal})\n\nIngresa el nuevo Nombre Completo:`, nombreActual);
+            if (nuevoNombre === null) return; 
+            nuevoNombre = nuevoNombre.trim();
+            if (!nuevoNombre) return alert("El nombre no puede estar vacío.");
+
+            let nuevaCc = prompt("Ingresa el número de Cédula (puedes corregirla si tenía un error):", ccOriginal);
+            if (nuevaCc === null) return;
+            nuevaCc = nuevaCc.trim();
+            if (!nuevaCc) return alert("La cédula no puede estar vacía.");
+
+            // Si el usuario ya existía en la lista oficial, lo actualizamos
+            if (user) {
+                user.nombre = nuevoNombre;
+                user.cc = nuevaCc;
+            } else {
+                // Si no estaba en la lista oficial (pero existía en un vale), lo creamos oficialmente
+                usuarios.push({ cc: nuevaCc, nombre: nuevoNombre, dept: currentUser.dept.trim().toLowerCase(), rol: "funcionario" });
+            }
+
+            // Actualizar también los datos en los vales históricos de este usuario
+            vales.forEach(v => {
+                if (v.usrCc === ccOriginal && v.dept === currentUser.dept) {
+                    v.usrNombre = nuevoNombre;
+                    v.usrCc = nuevaCc;
+                }
+            });
+
+            // Guardar en localStorage y en la nube
+            saveData();
+            render();
+            alert("✅ ¡Funcionario actualizado con éxito! Ya puede iniciar sesión con sus nuevos datos.");
+        }
+        
        function renderAdmin() {
 
     const s = document.getElementById("search_user").value.toLowerCase();
@@ -1819,36 +1862,18 @@ function tomarVale() {
     
 
     personalUnificado.forEach(u => {
-
         if (u.nombre.toLowerCase().includes(s) || u.cc.includes(s)) {
-
             tbU.innerHTML += `
-
                 <tr>
-
                     <td>${u.nombre}</td>
-
                     <td>${u.cc}</td>
-
                     <td>
-
+                        <button onclick="editarUsuario('${u.cc}')" style="background:#3b82f6; color:white; border:none; padding:2px 6px; font-size:11px; width:auto; margin:0 4px 0 0;" title="Editar Funcionario">✏️</button>
                         <button onclick="eliminarUsuario('${u.cc}', '${u.nombre}')" class="btn-danger" style="padding:2px 6px; font-size:11px; width:auto; margin:0;" title="Eliminar / Resetear">🗑️</button>
-
                     </td>
-
                 </tr>`;
-
         }
-
     });
-
-
-
-    if (personalUnificado.length === 0) {
-
-        tbU.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No hay personal registrado.</td></tr>`;
-
-    }
 
 
 
