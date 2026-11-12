@@ -583,25 +583,24 @@
 
 
                 <div class="panel">
-    <h2>👥 Personal Registrado</h2>
-    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
-    
-    <!-- AQUÍ VA ADENTRO EL RECUADRO DE CARGA MASIVA -->
-    <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:15px;">
-        <p style="font-size:12px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:6px;">📥 Registro Masivo de Personal</p>
-        <p style="font-size:11px; color:#64748b; margin-bottom:6px;">Pega cédula y nombre (ej: 1098765432 Juan Pérez), uno por línea.</p>
-        <textarea id="add_bulk_users_input" rows="3" placeholder="1098765432 Juan Pérez" style="margin-bottom:8px; font-size:12px;"></textarea>
-        <button onclick="agregarPersonalMasivo()" class="btn-sec" style="padding:6px; font-size:12px; margin:0;">Cargar Personal Masivamente</button>
-    </div>
-    <!-- FIN DEL RECUADRO -->
 
-    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
-        <table>
-            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
-            <tbody id="tbl_usuarios"></tbody>
-        </table>
-    </div>
-</div>
+                    <h2>👥 Personal Registrado</h2>
+
+                    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
+
+                    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
+
+                        <table>
+
+                            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+
+                            <tbody id="tbl_usuarios"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -660,13 +659,7 @@
         </div>
 
     </div>
-    
-<div class="panel" style="margin-top: 15px;">
-    <h2>📥 Registro Masivo de Personal</h2>
-    <p style="font-size:11px; color:#64748b; margin-bottom:8px;">Pega la cédula y el nombre de cada funcionario (ej: 1098765432 Juan Pérez), uno por línea.</p>
-    <textarea id="add_bulk_users_input" rows="4" placeholder="1098765432 Juan Pérez&#10;1012426957 María Gómez"></textarea>
-    <button onclick="agregarPersonalMasivo()" class="btn-sec">Cargar Personal Masivamente</button>
-</div>
+
 
 
     <!-- Librería SheetJS (XLSX) para generar Excel real (.xlsx) -->
@@ -1539,43 +1532,6 @@ function editarValeAdmin(num) {
 
         }
 
-        function agregarPersonalMasivo() {
-            const raw = document.getElementById("add_bulk_users_input").value.trim();
-            if (!raw) return alert("Por favor ingresa los datos del personal.");
-
-            const lineas = raw.split('\n').filter(line => line.trim().length > 0);
-            let agregados = 0, actualizados = 0;
-
-            lineas.forEach(line => {
-                const partes = line.trim().split(/\s+/);
-                if (partes.length >= 2) {
-                    const cc = partes[0].trim();
-                    const nombre = partes.slice(1).join(" ").trim();
-                    
-                    let existente = usuarios.find(u => u.cc === cc && u.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
-                    
-                    if (!existente) {
-                        usuarios.push({
-                            cc: cc,
-                            nombre: nombre,
-                            dept: currentUser.dept.trim().toLowerCase(),
-                            rol: "funcionario"
-                        });
-                        agregados++;
-                    } else {
-                        existente.nombre = nombre;
-                        actualizados++;
-                    }
-                }
-            });
-
-            document.getElementById("add_bulk_users_input").value = "";
-            saveData();
-            alert(`✅ Carga masiva exitosa: ${agregados} nuevos agregados, ${actualizados} actualizados.`);
-        }
-    </script>
-</body>
-</html>
 
 
     async function obtenerValeLibre() {
