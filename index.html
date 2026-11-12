@@ -581,33 +581,27 @@
                 </div>
 
 
+                   
+   <div class="panel">
+       
+    <h2>👥 Personal Registrado</h2>
+    
+    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
 
-                <div class="panel">
+    <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:15px;">
+        <p style="font-size:12px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:6px;">📥 Registro Masivo de Personal</p>
+        <p style="font-size:11px; color:#64748b; margin-bottom:6px;">Pega nombre y cédula (ej: Maximiliano Rios 1098765432), uno por línea.</p>
+        <textarea id="add_bulk_users_input" rows="3" placeholder="1098765432 Juan Pérez" style="margin-bottom:8px; font-size:12px; width:100%;"></textarea>
+        <button onclick="agregarPersonalMasivo()" class="btn-sec" style="padding:6px; font-size:12px; margin:0;">Cargar Personal Masivamente</button>
+    </div>
 
-                    <h2>👥 Personal Registrado</h2>
-
-                    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
-
-                    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
-
-                        <table>
-
-                            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
-
-                            <tbody id="tbl_usuarios"></tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div>
-
+    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
+        <table>
+            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+            <tbody id="tbl_usuarios"></tbody>
+        </table>
+    </div>
+</div>
                 <div class="panel">
 
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
@@ -670,7 +664,7 @@
 
     <script>
 
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_XleEVPYzziF2NONzsyQOmYvDEP0Sf6lM2h3oen8O_8Bod4_4Fi9rk0LKGsS-cMq0/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXe6B98lV8aUIh-GcoPklAbWBBTs2GMQ_0GyaJkNtzEoFqJNgOujkTwG8dm14I0a40/exec";
 
 
 
@@ -1380,10 +1374,11 @@ function editarValeAdmin(num) {
             const deptLimpio = deptSelect.trim().toLowerCase();
 
             // Si es Administradora
-            if (ADMIN_ROLES[cc]) {
+           if (ADMIN_ROLES[cc]) {
                 if (ADMIN_ROLES[cc].trim().toLowerCase() !== deptLimpio) {
                     return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
                 }
+            
                 if (pin === (adminPins[cc] || "1234")) {
                     currentUser = { cc, nombre: `Admin ${deptLimpio.toUpperCase()}`, dept: deptLimpio, rol: "admin" };
                     document.getElementById("l_pin").value = ""; 
@@ -1517,7 +1512,41 @@ function editarValeAdmin(num) {
 
         }
 
+function agregarPersonalMasivo() {
+    const raw = document.getElementById("add_bulk_users_input").value.trim();
+    if (!raw) return alert("Por favor ingresa los datos del personal.");
 
+    const lineas = raw.split('\n').filter(line => line.trim().length > 0);
+    let agregados = 0, actualizados = 0;
+
+    lineas.forEach(line => {
+        const partes = line.trim().split(/\s+/);
+        if (partes.length >= 2) {
+            const cc = partes[0].trim();
+            const nombre = partes.slice(1).join(" ").trim();
+            
+            let existente = usuarios.find(u => u.cc === cc && u.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
+            
+            if (!existente) {
+                usuarios.push({
+                    cc: cc,
+                    nombre: nombre,
+                    dept: currentUser.dept.trim().toLowerCase(),
+                    rol: "funcionario"
+                });
+                agregados++;
+            } else {
+                existente.nombre = nombre;
+                actualizados++;
+            }
+        }
+    });
+
+    document.getElementById("add_bulk_users_input").value = "";
+    saveData();
+    renderAdmin();
+    alert(`✅ Carga masiva exitosa: ${agregados} nuevos agregados, ${actualizados} actualizados.`);
+}
 
         function eliminarUsuario(cc, nombre) {
 
