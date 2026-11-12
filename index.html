@@ -1387,30 +1387,49 @@ function editarValeAdmin(num) {
 
 
         function login() {
-    // Función auxiliar para quitar tildes y minúsculas
+    // Limpiador para evitar errores por tildes o mayúsculas en el departamento
     const limpiar = (str) => String(str || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    const deptSeleccionado = limpiar(document.getElementById("l_dept").value);
-    const cedulaIngresada = document.getElementById("l_cc").value.trim();
+    const deptInput = limpiar(document.getElementById("l_dept").value);
+    const ccInput = document.getElementById("l_cc").value.trim();
 
-    // Busca al usuario sin importar si tiene tilde o mayúsculas
-    const usuarioEncontrado = usuarios.find(u => 
-        String(u.cc).trim() === cedulaIngresada && 
-        limpiar(u.dept) === deptSeleccionado
-    );
-
-    if (!usuarioEncontrado) {
-        alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
+    if (!ccInput) {
+        alert("Por favor ingresa el número de cédula.");
         return;
     }
 
+    // Buscamos al usuario en la lista global de usuarios registrados
+    const usuarioEncontrado = usuarios.find(u => 
+        String(u.cc).trim() === ccInput && 
+        limpiar(u.dept) === deptInput
+    );
+
+    if (!usuarioEncontrado) {
+        alert("Usuario no encontrado en este departamento. Por favor, verifica el número de cédula o regístralo primero.");
+        return;
+    }
+
+    // Guardamos la sesión activa del funcionario
     currentUser = usuarioEncontrado;
     localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    
+
+    // FILTRAR Y MOSTRAR LOS VALES DE ESTE FUNCIONARIO EN SU PERFIL
+    // Asumiendo que tienes un arreglo llamado 'vales' y una función para renderizar su panel:
+    if (typeof renderValesFuncionario === "function") {
+        renderValesFuncionario(currentUser.cc);
+    }
+
+    // Cambiar a la vista del panel del usuario (asegúrate de que sea tu función de mostrar la app)
     if (typeof renderApp === "function") {
         renderApp();
     } else if (typeof mostrarApp === "function") {
         mostrarApp();
+    } else {
+        // Si cambias pantallas por IDs de HTML:
+        const formLogin = document.getElementById("form_login");
+        const panelUsuario = document.getElementById("panel_usuario"); // Cambia por el ID de tu panel
+        if (formLogin) formLogin.style.display = "none";
+        if (panelUsuario) panelUsuario.style.display = "block";
     }
 }
 
