@@ -583,24 +583,25 @@
 
 
                 <div class="panel">
+    <h2>👥 Personal Registrado</h2>
+    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
+    
+    <!-- AQUÍ VA ADENTRO EL RECUADRO DE CARGA MASIVA -->
+    <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:15px;">
+        <p style="font-size:12px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:6px;">📥 Registro Masivo de Personal</p>
+        <p style="font-size:11px; color:#64748b; margin-bottom:6px;">Pega cédula y nombre (ej: 1098765432 Juan Pérez), uno por línea.</p>
+        <textarea id="add_bulk_users_input" rows="3" placeholder="1098765432 Juan Pérez" style="margin-bottom:8px; font-size:12px;"></textarea>
+        <button onclick="agregarPersonalMasivo()" class="btn-sec" style="padding:6px; font-size:12px; margin:0;">Cargar Personal Masivamente</button>
+    </div>
+    <!-- FIN DEL RECUADRO -->
 
-                    <h2>👥 Personal Registrado</h2>
-
-                    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
-
-                    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
-
-                        <table>
-
-                            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
-
-                            <tbody id="tbl_usuarios"></tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
+    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
+        <table>
+            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+            <tbody id="tbl_usuarios"></tbody>
+        </table>
+    </div>
+</div>
 
             </div>
 
