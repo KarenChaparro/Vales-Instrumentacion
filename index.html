@@ -738,6 +738,29 @@
 
         }
 
+        function loginUser() {
+    const deptSeleccionado = document.getElementById("select_dept").value.trim().toLowerCase();
+    const cedulaIngresada = document.getElementById("input_cedula").value.trim();
+
+    const usuarioEncontrado = usuarios.find(u => 
+        String(u.cc).trim() === cedulaIngresada && 
+        String(u.dept).trim().toLowerCase() === deptSeleccionado
+    );
+
+    if (!usuarioEncontrado) {
+        alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
+        return;
+    }
+
+    currentUser = usuarioEncontrado;
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    
+    if (typeof mostrarApp === "function") {
+        mostrarApp();
+    } else if (typeof renderApp === "function") {
+        renderApp();
+    }
+}
 
 
         function cargarDatosNube() {
