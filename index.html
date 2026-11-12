@@ -1530,37 +1530,42 @@ function agregarPersonalMasivo() {
     const lineas = raw.split('\n').filter(line => line.trim().length > 0);
     let agregados = 0, actualizados = 0;
 
+    // Obtenemos el departamento actual seleccionado en la interfaz
+    const deptActual = document.getElementById("l_dept") ? document.getElementById("l_dept").value.trim().toLowerCase() : "instrumentacion";
+
     lineas.forEach(line => {
         const partes = line.trim().split(/\s+/);
         if (partes.length >= 2) {
-            // La cédula es EL ÚLTIMO elemento (el número al final)
+            // La cédula es el último elemento (el número al final)
             const cc = partes[partes.length - 1].trim();
-            // El nombre es TODO lo demás (desde el primer nombre hasta el apellido anterior a la cédula)
+            // El nombre es todo lo anterior
             const nombre = partes.slice(0, partes.length - 1).join(" ").trim();
             
-            let existente = usuarios.find(u => u.cc === cc && u.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
+            // Buscamos si ya existe por cédula
+            let existente = usuarios.find(u => String(u.cc).trim() === cc);
             
             if (!existente) {
+                // Creamos el usuario con todos los campos obligatorios para que el login lo reconozca
                 usuarios.push({
                     cc: cc,
                     nombre: nombre,
-                    dept: currentUser.dept.trim().toLowerCase(),
+                    dept: deptActual,
                     rol: "funcionario"
                 });
                 agregados++;
             } else {
                 existente.nombre = nombre;
+                existente.dept = deptActual; // Aseguramos que pertenezca al departamento
                 actualizados++;
             }
         }
     });
 
     document.getElementById("add_bulk_users_input").value = "";
-    saveData();
+    saveData(); // Guarda en localStorage para que no se pierdan
     renderAdmin();
-    alert(`✅ Carga masiva exitosa: ${agregados} nuevos agregados, ${actualizados} actualizados.`);
+    alert(`✅ Carga masiva exitosa: ${agregados} nuevos agregados, ${actualizados} actualizados. ¡Ya pueden iniciar sesión!`);
 }
-
         function eliminarUsuario(cc, nombre) {
 
             if (confirm(`¿Resetear a ${nombre}?`)) {
