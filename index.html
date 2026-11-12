@@ -581,33 +581,27 @@
                 </div>
 
 
+                   
+   <div class="panel">
+       
+    <h2>👥 Personal Registrado</h2>
+    
+    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
 
-                <div class="panel">
+    <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:15px;">
+        <p style="font-size:12px; font-weight:bold; color:#8b1a2b; margin-top:0; margin-bottom:6px;">📥 Registro Masivo de Personal</p>
+        <p style="font-size:11px; color:#64748b; margin-bottom:6px;">Pega nombre y cédula (ej: Maximiliano Rios 1098765432), uno por línea.</p>
+        <textarea id="add_bulk_users_input" rows="3" placeholder="Maximiliano Rios 1098765432" style="margin-bottom:8px; font-size:12px; width:100%;"></textarea>
+        <button onclick="agregarPersonalMasivo()" class="btn-sec" style="padding:6px; font-size:12px; margin:0;">Cargar Personal Masivamente</button>
+    </div>
 
-                    <h2>👥 Personal Registrado</h2>
-
-                    <input type="text" id="search_user" placeholder="🔍 Buscar funcionario..." onkeyup="renderAdmin()" style="margin-bottom:10px;">
-
-                    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
-
-                        <table>
-
-                            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
-
-                            <tbody id="tbl_usuarios"></tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div>
-
+    <div style="max-height:220px; overflow-y:auto;" class="table-responsive">
+        <table>
+            <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+            <tbody id="tbl_usuarios"></tbody>
+        </table>
+    </div>
+</div>
                 <div class="panel">
 
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
@@ -670,7 +664,7 @@
 
     <script>
 
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_XleEVPYzziF2NONzsyQOmYvDEP0Sf6lM2h3oen8O_8Bod4_4Fi9rk0LKGsS-cMq0/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXe6B98lV8aUIh-GcoPklAbWBBTs2GMQ_0GyaJkNtzEoFqJNgOujkTwG8dm14I0a40/exec";
 
 
 
@@ -744,6 +738,29 @@
 
         }
 
+        function loginUser() {
+    const deptSeleccionado = document.getElementById("select_dept").value.trim().toLowerCase();
+    const cedulaIngresada = document.getElementById("input_cedula").value.trim();
+
+    const usuarioEncontrado = usuarios.find(u => 
+        String(u.cc).trim() === cedulaIngresada && 
+        String(u.dept).trim().toLowerCase() === deptSeleccionado
+    );
+
+    if (!usuarioEncontrado) {
+        alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
+        return;
+    }
+
+    currentUser = usuarioEncontrado;
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    
+    if (typeof mostrarApp === "function") {
+        mostrarApp();
+    } else if (typeof renderApp === "function") {
+        renderApp();
+    }
+}
 
 
         function cargarDatosNube() {
@@ -1370,44 +1387,33 @@ function editarValeAdmin(num) {
 
 
         function login() {
-            const deptSelect = document.getElementById("l_dept").value;
-            const cc = document.getElementById("l_cc").value.trim();
-            const pin = document.getElementById("l_pin").value.trim();
-            
-            if (!cc) return alert("Ingresa tu cédula.");
-            
-            // Limpiar y normalizar el departamento seleccionado
-            const deptLimpio = deptSelect.trim().toLowerCase();
+    const cedulaIngresada = document.getElementById("l_cc").value.trim();
 
-            // Si es Administradora
-            if (ADMIN_ROLES[cc]) {
-                if (ADMIN_ROLES[cc].trim().toLowerCase() !== deptLimpio) {
-                    return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
-                }
-                if (pin === (adminPins[cc] || "1234")) {
-                    currentUser = { cc, nombre: `Admin ${deptLimpio.toUpperCase()}`, dept: deptLimpio, rol: "admin" };
-                    document.getElementById("l_pin").value = ""; 
-                    saveData(); 
-                    return;
-                }
-                return alert("PIN incorrecto.");
-            }
-            
-            // Buscar al funcionario normal (normalizando también el departamento almacenado)
-            const usr = usuarios.find(u => u.cc === cc);
-            if (!usr) {
-                return alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
-            }
+    if (!cedulaIngresada) {
+        alert("Por favor ingresa el número de cédula.");
+        return;
+    }
 
-            // Validar departamento sin importar mayúsculas o espacios
-            if (usr.dept.trim().toLowerCase() !== deptLimpio) {
-                return alert(`Estás registrado en el departamento de ${usr.dept.toUpperCase()}. Selecciona el departamento correcto.`);
-            }
-            
-            currentUser = usr; 
-            saveData();
-        }
+    // BUSCAMOS ÚNICAMENTE POR CÉDULA (olvidándonos de enredos con el departamento)
+    const usuarioEncontrado = usuarios.find(u => String(u.cc).trim() === cedulaIngresada);
 
+    if (!usuarioEncontrado) {
+        alert("Usuario no encontrado en la base de datos. Por favor, verifica el número de cédula o regístralo primero.");
+        return;
+    }
+
+    // Guardamos la sesión y entramos de una vez
+    currentUser = usuarioEncontrado;
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+    if (typeof renderApp === "function") {
+        renderApp();
+    } else if (typeof mostrarApp === "function") {
+        mostrarApp();
+    } else {
+        location.reload();
+    }
+}
 
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
 
@@ -1517,8 +1523,49 @@ function editarValeAdmin(num) {
 
         }
 
+function agregarPersonalMasivo() {
+    const raw = document.getElementById("add_bulk_users_input").value.trim();
+    if (!raw) return alert("Por favor ingresa los datos del personal.");
 
+    const lineas = raw.split('\n').filter(line => line.trim().length > 0);
+    let agregados = 0, actualizados = 0;
 
+    // Obtenemos el departamento actual seleccionado en la interfaz
+    const deptActual = document.getElementById("l_dept") ? document.getElementById("l_dept").value.trim().toLowerCase() : "instrumentacion";
+
+    lineas.forEach(line => {
+        const partes = line.trim().split(/\s+/);
+        if (partes.length >= 2) {
+            // La cédula es el último elemento (el número al final)
+            const cc = partes[partes.length - 1].trim();
+            // El nombre es todo lo anterior
+            const nombre = partes.slice(0, partes.length - 1).join(" ").trim();
+            
+            // Buscamos si ya existe por cédula
+            let existente = usuarios.find(u => String(u.cc).trim() === cc);
+            
+            if (!existente) {
+                // Creamos el usuario con todos los campos obligatorios para que el login lo reconozca
+                usuarios.push({
+                    cc: cc,
+                    nombre: nombre,
+                    dept: deptActual,
+                    rol: "funcionario"
+                });
+                agregados++;
+            } else {
+                existente.nombre = nombre;
+                existente.dept = deptActual; // Aseguramos que pertenezca al departamento
+                actualizados++;
+            }
+        }
+    });
+
+    document.getElementById("add_bulk_users_input").value = "";
+    saveData(); // Guarda en localStorage para que no se pierdan
+    renderAdmin();
+    alert(`✅ Carga masiva exitosa: ${agregados} nuevos agregados, ${actualizados} actualizados. ¡Ya pueden iniciar sesión!`);
+}
         function eliminarUsuario(cc, nombre) {
 
             if (confirm(`¿Resetear a ${nombre}?`)) {
