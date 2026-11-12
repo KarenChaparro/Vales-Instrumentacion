@@ -2115,6 +2115,64 @@ function tomarVale() {
             }
 
         }
+        const URL_APKS = "https://script.google.com/macros/s/AKfycbyXe6B98lV8aUIh-GcoPklAbWBBTs2GMQ_0GyaJkNtzEoFqJNgOujkTwG8dm14I0a40/exec";
+
+// Carga los datos de Google Sheets al entrar a la página (evita que se ponga en ceros)
+async function cargarDatosNube() {
+    try {
+        const res = await fetch(URL_APKS);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+            usuarios = data.map(row => ({
+                cc: row.cedula || row.cc || "",
+                nombre: row.nombre || "",
+                dept: row.dept || "",
+                rol: row.rol || "funcionario"
+            }));
+            localStorage.setItem("usuarios", JSON.stringify(usuarios));
+            if (typeof renderAdmin === "function") renderAdmin();
+        }
+    } catch (e) {
+        console.error("Error al cargar de la nube:", e);
+    }
+}
+
+// Guarda los datos en Google Sheets de forma automática
+async function guardarDatosNube() {
+    try {
+        const payload = usuarios.map((u, i) => ({
+            numero: i + 1,
+            cedula: u.cc,
+            nombre: u.nombre,
+            est: "Activo",
+            dept: u.dept || "Instrumentación"
+        }));
+
+        await fetch(URL_APKS, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    } catch (e) {
+        console.error("Error al guardar en la nube:", e);
+    }
+}
+
+// Descarga los datos apenas abre la página en cualquier aparato
+window.addEventListener("DOMContentLoaded", () => {
+    cargarDatosNube();
+});
+
+// Detecta automáticamente cuando agregas algo y lo sube a la nube
+document.addEventListener("click", (e) => {
+    // Si haces clic en un botón de guardar, agregar o similar, sincroniza
+    if (e.target && (e.target.id.includes("add") || e.target.id.includes("guardar") || e.target.id.includes("reg") || e.target.textContent.toLowerCase().includes("agregar"))) {
+        setTimeout(guardarDatosNube, 500);
+    }
+});
 
     </script>
 
