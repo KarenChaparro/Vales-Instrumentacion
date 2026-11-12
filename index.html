@@ -1387,32 +1387,44 @@ function editarValeAdmin(num) {
 
 
         function login() {
-    // Función auxiliar para quitar tildes y minúsculas
-    const limpiar = (str) => String(str || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const deptSelect = document.getElementById("l_dept").value;
+            const cc = document.getElementById("l_cc").value.trim();
+            const pin = document.getElementById("l_pin").value.trim();
+            
+            if (!cc) return alert("Ingresa tu cédula.");
+            
+            // Limpiar y normalizar el departamento seleccionado
+            const deptLimpio = deptSelect.trim().toLowerCase();
 
-    const deptSeleccionado = limpiar(document.getElementById("l_dept").value);
-    const cedulaIngresada = document.getElementById("l_cc").value.trim();
+            // Si es Administradora
+           if (ADMIN_ROLES[cc]) {
+                if (ADMIN_ROLES[cc].trim().toLowerCase() !== deptLimpio) {
+                    return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
+                }
+            
+                if (pin === (adminPins[cc] || "1234")) {
+                    currentUser = { cc, nombre: `Admin ${deptLimpio.toUpperCase()}`, dept: deptLimpio, rol: "admin" };
+                    document.getElementById("l_pin").value = ""; 
+                    saveData(); 
+                    return;
+                }
+                return alert("PIN incorrecto.");
+            }
+            
+            // Buscar al funcionario normal (normalizando también el departamento almacenado)
+            const usr = usuarios.find(u => u.cc === cc);
+            if (!usr) {
+                return alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
+            }
 
-    // Busca al usuario sin importar si tiene tilde o mayúsculas
-    const usuarioEncontrado = usuarios.find(u => 
-        String(u.cc).trim() === cedulaIngresada && 
-        limpiar(u.dept) === deptSeleccionado
-    );
-
-    if (!usuarioEncontrado) {
-        alert("Usuario no encontrado en la base de datos. Por favor, regístrate primero en la pestaña 'Registrarse'.");
-        return;
-    }
-
-    currentUser = usuarioEncontrado;
-    localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    
-    if (typeof renderApp === "function") {
-        renderApp();
-    } else if (typeof mostrarApp === "function") {
-        mostrarApp();
-    }
-}
+            // Validar departamento sin importar mayúsculas o espacios
+            if (usr.dept.trim().toLowerCase() !== deptLimpio) {
+                return alert(`Estás registrado en el departamento de ${usr.dept.toUpperCase()}. Selecciona el departamento correcto.`);
+            }
+            
+            currentUser = usr; 
+            saveData();
+        }
 
 
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
