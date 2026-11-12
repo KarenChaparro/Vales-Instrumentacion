@@ -1522,8 +1522,10 @@ function agregarPersonalMasivo() {
     lineas.forEach(line => {
         const partes = line.trim().split(/\s+/);
         if (partes.length >= 2) {
-            const cc = partes[0].trim();
-            const nombre = partes.slice(1).join(" ").trim();
+            // La cédula es EL ÚLTIMO elemento (el número al final)
+            const cc = partes[partes.length - 1].trim();
+            // El nombre es TODO lo demás (desde el primer nombre hasta el apellido anterior a la cédula)
+            const nombre = partes.slice(0, partes.length - 1).join(" ").trim();
             
             let existente = usuarios.find(u => u.cc === cc && u.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
             
