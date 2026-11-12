@@ -1387,52 +1387,33 @@ function editarValeAdmin(num) {
 
 
         function login() {
-    // Limpiador para evitar errores por tildes o mayúsculas en el departamento
-    const limpiar = (str) => String(str || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const cedulaIngresada = document.getElementById("l_cc").value.trim();
 
-    const deptInput = limpiar(document.getElementById("l_dept").value);
-    const ccInput = document.getElementById("l_cc").value.trim();
-
-    if (!ccInput) {
+    if (!cedulaIngresada) {
         alert("Por favor ingresa el número de cédula.");
         return;
     }
 
-    // Buscamos al usuario en la lista global de usuarios registrados
-    const usuarioEncontrado = usuarios.find(u => 
-        String(u.cc).trim() === ccInput && 
-        limpiar(u.dept) === deptInput
-    );
+    // BUSCAMOS ÚNICAMENTE POR CÉDULA (olvidándonos de enredos con el departamento)
+    const usuarioEncontrado = usuarios.find(u => String(u.cc).trim() === cedulaIngresada);
 
     if (!usuarioEncontrado) {
-        alert("Usuario no encontrado en este departamento. Por favor, verifica el número de cédula o regístralo primero.");
+        alert("Usuario no encontrado en la base de datos. Por favor, verifica el número de cédula o regístralo primero.");
         return;
     }
 
-    // Guardamos la sesión activa del funcionario
+    // Guardamos la sesión y entramos de una vez
     currentUser = usuarioEncontrado;
     localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
-    // FILTRAR Y MOSTRAR LOS VALES DE ESTE FUNCIONARIO EN SU PERFIL
-    // Asumiendo que tienes un arreglo llamado 'vales' y una función para renderizar su panel:
-    if (typeof renderValesFuncionario === "function") {
-        renderValesFuncionario(currentUser.cc);
-    }
-
-    // Cambiar a la vista del panel del usuario (asegúrate de que sea tu función de mostrar la app)
     if (typeof renderApp === "function") {
         renderApp();
     } else if (typeof mostrarApp === "function") {
         mostrarApp();
     } else {
-        // Si cambias pantallas por IDs de HTML:
-        const formLogin = document.getElementById("form_login");
-        const panelUsuario = document.getElementById("panel_usuario"); // Cambia por el ID de tu panel
-        if (formLogin) formLogin.style.display = "none";
-        if (panelUsuario) panelUsuario.style.display = "block";
+        location.reload();
     }
 }
-
 
         function logout() { currentUser = null; localStorage.removeItem("vi_session"); document.getElementById("l_cc").value = ""; document.getElementById("l_pin").value = ""; document.getElementById("box_pin_admin").style.display = "none"; render(); }
 
