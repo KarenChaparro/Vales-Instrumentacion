@@ -1380,11 +1380,10 @@ function editarValeAdmin(num) {
             const deptLimpio = deptSelect.trim().toLowerCase();
 
             // Si es Administradora
-           if (ADMIN_ROLES[cc]) {
+            if (ADMIN_ROLES[cc]) {
                 if (ADMIN_ROLES[cc].trim().toLowerCase() !== deptLimpio) {
                     return alert(`Tu departamento es ${ADMIN_ROLES[cc].toUpperCase()}.`);
                 }
-            
                 if (pin === (adminPins[cc] || "1234")) {
                     currentUser = { cc, nombre: `Admin ${deptLimpio.toUpperCase()}`, dept: deptLimpio, rol: "admin" };
                     document.getElementById("l_pin").value = ""; 
