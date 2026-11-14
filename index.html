@@ -1555,7 +1555,7 @@ function editarValeAdmin(num) {
                     return;
                 }
 
-                // 3. Buscar vales libres reales de su departamento
+                // 3. Buscar vales libres reales de su departamento y asegurar que estén 100% libres
                 let libresDisponibles = vales.filter(v => v.est === "libre" && v.dept.trim().toLowerCase() === currentUser.dept.trim().toLowerCase());
                 
                 if (libresDisponibles.length === 0) {
@@ -1565,10 +1565,16 @@ function editarValeAdmin(num) {
                     return;
                 }
 
-                // 4. Tomar de forma estricta el primer vale libre disponible
-                let valeSeleccionado = libresDisponibles[0];
+                // 4. Tomar de forma estricta el primer vale y verificar DOBLEMENTE que su estado real en la nube sea "libre"
+                let valeSeleccionado = libresDisponibles.find(v => v.est === "libre");
+                if (!valeSeleccionado) {
+                    document.getElementById("loading_overlay").style.display = "none";
+                    alert("⚠️ Este vale ya fue tomado por otro usuario. Por favor, intenta de nuevo.");
+                    render();
+                    return;
+                }
 
-                // 5. Asignarlo temporalmente como "obtenido" para su tarjeta
+                // 5. Asignarlo de inmediato y bloquearlo
                 valeSeleccionado.est = "obtenido"; 
                 valeSeleccionado.usrNombre = currentUser.nombre; 
                 valeSeleccionado.usrCc = currentUser.cc; 
