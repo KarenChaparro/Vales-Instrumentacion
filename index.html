@@ -1053,16 +1053,12 @@
                         <button onclick="document.getElementById('modal_detalles_dinamico').remove();" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; width:auto;">⬅️ Cerrar</button>
                     </div>
 
-    ${esAdmin && tipo === 'libres' ? `
-    <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px;">➕ Asignar Primer Vale</button>
-        <button onclick="descargarReporteExcel()" style="background:#991b1b; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">📊 Descargar Excel</button>
+   ${esAdmin ? `
+    <div style="margin-bottom:15px; display:flex; justify-content:${tipo === 'libres' ? 'space-between' : 'flex-end'}; align-items:center; flex-wrap:wrap; gap:10px;">
+        ${tipo === 'libres' ? `<button onclick="asignarValeManualDirecto(); cerrarModalDetalle();" style="background:#10b981; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px;">➕ Asignar Primer Vale</button>` : ''}
+        <button onclick="descargarReporteExcel('${tipo}')" style="background:#991b1b; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">📊 Descargar Excel</button>
     </div>
-` : `
-    <div style="margin-bottom:15px; display:flex; justify-content:flex-end;">
-        <button onclick="descargarReporteExcel()" style="background:#991b1b; color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">📊 Descargar Excel</button>
-    </div>
-`}
+` : ''}
                     <input type="text" id="filtro_general_modal" placeholder="🔍 Buscar por número de vale, nombre o cédula..." onkeyup="filtrarModalGeneral()" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1; font-size:14px; box-sizing:border-box;">
 
                     <div style="overflow-y:auto; flex-grow:1;">
@@ -1623,96 +1619,59 @@ function editarValeAdmin(num) {
         
         // DESCARGA DE EXCEL REAL (.xlsx) CON FILTRO DE NO REPETIR USADOS
 
-        function descargarReporteExcel() {
+        function descargarReporteExcel(filtroForzado) {
 
             if (currentUser.rol !== "admin") return;
 
-            const filtro = document.getElementById("export_filter").value;
+            const filtro = filtroForzado || document.getElementById("export_filter").value;
 
             let valesDept = vales.filter(v => v.dept === currentUser.dept);
-
-            
 
             if (filtro === "usados") {
 
                 // Filtramos solo los usados que NO han sido descargados todavía
-
                 valesDept = valesDept.filter(v => v.est === "usado" && !v.descargadoUsado);
 
-                
-
                 if (valesDept.length === 0) {
-
                     return alert("No hay nuevos vales usados pendientes por descargar.");
-
                 }
 
-
-
-                // Marcamos cada uno de estos vales como descargados
-
+                // Marcamos cada uno de estos vales como descargados para que no se repitan mañana
                 valesDept.forEach(v => {
-
                     let valeReal = vales.find(item => item.num === v.num && item.dept === currentUser.dept);
-
                     if (valeReal) valeReal.descargadoUsado = true;
-
                 });
 
-
-
                 // Guardamos el cambio en la nube y localStorage
-
                 saveData();
+                if (filtroForzado) cerrarModalDetalle();
 
             } else {
 
                 if (filtro === "libres") valesDept = valesDept.filter(v => v.est === "libre");
-
                 else if (filtro === "asignados") valesDept = valesDept.filter(v => v.est !== "libre");
-
                 else if (filtro === "cancelados") valesDept = valesDept.filter(v => v.est === "cancelado");
-
-
 
                 if (valesDept.length === 0) return alert("No hay registros para este filtro.");
 
             }
 
-
-
             const datosFormateados = valesDept.map(v => ({
-
                 "Número de Vale": v.num,
-
                 "Vencimiento": v.fecVenc,
-
                 "Fecha Carga": v.fechaCarga || '',
-
                 "Estado": v.est,
-
                 "Departamento": v.dept,
-
                 "Funcionario": v.usrNombre || '',
-
                 "Cédula": v.usrCc || '',
-
                 "Fecha y Hora": v.fechaHora || '',
-
                 "Valor COP": v.valor ? Number(v.valor) : '',
-
                 "Motivo / Detalle": v.motivo || ''
-
             }));
 
-
-
             const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-
             const workbook = XLSX.utils.book_new();
-
             XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario Vales");
-
             XLSX.writeFile(workbook, `Reporte_${currentUser.dept.toUpperCase()}_${filtro.toUpperCase()}.xlsx`);
 
         }
